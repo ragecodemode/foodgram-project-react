@@ -2,7 +2,10 @@ from django_filters.rest_framework import filters
 
 from recipes.models import Recipe
 
+
 class RecipeFilter(filters.FilterSet):
+    """Фильтр для модели Recipe."""
+
     author = filters.ModelChoiceFilter(field_name='author__id__in')
     is_in_shopping_cart = filters.BooleanFilter(
         field_name='is_in_shopping_cart__in',

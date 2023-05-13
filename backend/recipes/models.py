@@ -51,7 +51,7 @@ class Recipe(models.Model):
         'Время готовки', 
         validators=(MinValueValidator(MIN_VALUE_COOKING_TIME),),
         error_messages={
-            'errors': 'Минимальное время готовки 1 минута.'
+            'errors': f'Минимальное время готовки {MIN_VALUE_COOKING_TIME} минута.'
         },
         default=MIN_VALUE_COOKING_TIME,
     )
@@ -65,7 +65,7 @@ class Recipe(models.Model):
  
     class Meta:
         verbose_name = 'Рецепты'
-        ordering = ('-pub_date', )
+        ordering = ('-pub_date',)
 
 
 class RecipeIngridient(models.Model):
@@ -139,13 +139,13 @@ class ShoppingCart(models.Model):
         on_delete=models.CASCADE,
         related_name='Пользователь'
     )
-    
+
     def __str__(self) -> str:
         return f'{self.user} {self.recipe.name}'
-    
+
     class Meta:
         verbose_name = 'Список покупок'
-        ordering = ['-id']
+        ordering = ['-recipe']
         constraints =[
             models.UniqueConstraint(
                 fields=['recipe', 'user'],

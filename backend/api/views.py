@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, Sum
 
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
@@ -22,7 +22,7 @@ from .serializers import (
     RecipeListCreateSerializer,
     RecipeRetrieveUpdate,
 )
-from recipes.models import Tag, Ingredient, Favorite, Recipe, ShoppingCart
+from recipes.models import Tag, Ingredient, Favorite, Recipe, ShoppingCart, RecipeIngridient
 from users.models import Follow
 from api.permissions import IsAuthenticatedOrReadOnly
 from api.filters import RecipeFilter
@@ -215,16 +215,25 @@ class RecipeViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    @action(detail=False, permission_classes=(IsAuthenticated,))
     def create_ingredients_file():
-        ingredients = ShoppingCart.objects.all()
-        file_list = ''
+        ingredients = (
+            RecipeIngridient.objects
+            .all()
+            .values('ingredient__name', 'ingredient__measurement_unit')
+            .annotate(amount=Sum('amount')))
+        shopping_cart = []
         for ingredient in ingredients:
-            file_list += ingredient.name
-            file_list += 'n'
-        return file_list
+            shopping_cart.append(
+                f'{ingredient["ingredient__name"]}'
+                f'{ingredient["amount"]} '
+                f'{ingredient["ingredient__measurement_unit"]}\n'
+            )
+        return shopping_cart
     
+    @action(('post',), detail=False, permission_classes=(IsAuthenticated,))
     def download_ingredients(self, request):
-        file_list = self.create_ingredients_file()
-        response = HttpResponse(file_list, content_type='text/plain')
+        shopping_cart = self.create_ingredients_file()
+        response = HttpResponse(shopping_cart, content_type='text/plain')
         response['Content-Disposition'] = 'attachment; filename="ingredients.txt"'
         return response

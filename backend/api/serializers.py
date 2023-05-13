@@ -1,12 +1,20 @@
-from drf_extra_fields.fields import Base64ImageField
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 
 from rest_framework import serializers
+from drf_extra_fields.fields import Base64ImageField
+
 
 from recipes.models import Tag, Ingredient, Recipe, RecipeIngridient, Favorite, ShoppingCart
 
 User = get_user_model()
+
+
+FIELD_SERIALIZER_PASSWORD = serializers.CharField(
+    max_length=200,
+    write_only=True,
+    required=True
+)
 
 
 class UserSerializers(serializers.ModelSerializer):
@@ -27,9 +35,7 @@ class UserSerializers(serializers.ModelSerializer):
         )
         
     def get_is_subscribed(self, obj):
-        user = self.context['request'].user
-        if not user.is_authenticated:
-            return False
+        user = self.context['request'].user.is_authenticated
         return obj.following.filter(user=user).exists()
 
 
@@ -41,9 +47,9 @@ class TagSerializers(serializers.ModelSerializer):
     
     class Meta:
         model = Tag
-        feilds = ('id', 'name', 'color', 'slug',)
-    
-    
+        feilds = ('__all__')
+
+
 class IngredientSerializers(serializers.ModelSerializer):
     """
     Сериализатор модели Ingredient.
@@ -142,37 +148,37 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
             'text',
             'cooking_time',
         )
-        
+
+    def get_ingredient_list(self, ingredient):
+        ingredients_list = [
+            RecipeIngridient(
+                amount=ingredient['amount'],
+                ingredient=Ingredient.objects.get(id=ingredient["id"]),
+            ) 
+        ]
+        return ingredients_list
+    
     def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         recipe_new = Recipe.objects.create(**validated_data)
         recipe_new.tags.set(tags)
 
-        for ingredient in ingredients:
-            amount = ingredient['amount']
-            RecipeIngridient(
-                amount=amount,
-                ingredient=Ingredient.objects.get(id=ingredient["id"]),
-                recipe=recipe_new,
-            )
+        RecipeIngridient.objects.bulk_create(
+            self.get_ingredient_list(recipe=recipe_new)
+        )
         return recipe_new
 
     def update(self, instance, validated_data):
-        ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         
         instance.update(**validated_data)
         instance.tags.set(tags)
-        
-        for ingredient in ingredients:
-            amount = ingredient['amount']
-            RecipeIngridient.objects.update(
-                amount=amount,
-                ingredient=Ingredient.objects.get(id=ingredient["id"]),
-                recipe=instance,
-            )
+
+        RecipeIngridient.objects.bulk_create(
+            self.get_ingredient_list(recipe=instance)
+        )
         return instance
+
 
 class FavoriteSerializers(serializers.ModelSerializer):
     """
@@ -190,7 +196,7 @@ class FavoriteSerializers(serializers.ModelSerializer):
             'username',
         )
         
-    def validate(self, data):
+    def validate_favorite(self, data):
        user = data['user']
        recipe=data['recipe']
        if user.favorites.filter(recipe).exists():
@@ -247,8 +253,8 @@ class PasswordSerializers(serializers.ModelSerializer):
     Сериализатор, предназначенный для проверки пароля.
     """
     
-    new_password = serializers.CharField(max_length=200, write_only=True, required=True)
-    current_password = serializers.CharField(max_length=200, write_only=True, required=True)
+    new_password = FIELD_SERIALIZER_PASSWORD
+    current_password = FIELD_SERIALIZER_PASSWORD
     
     def validate_new_password(self, value):
         user = self.context['request'].user
