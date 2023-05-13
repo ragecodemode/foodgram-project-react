@@ -149,34 +149,36 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
             'cooking_time',
         )
 
-    def get_ingredient_list(self, ingredient):
+    @staticmethod
+    def get_ingredient_list(recipe, ingredients):
         ingredients_list = [
             RecipeIngridient(
                 amount=ingredient['amount'],
                 ingredient=Ingredient.objects.get(id=ingredient["id"]),
-            ) 
+                recipe=recipe
+            ) for ingredient in ingredients
         ]
-        return ingredients_list
+        RecipeIngridient.objects.bulk_create(ingredients_list)
     
     def create(self, validated_data):
+        ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         recipe_new = Recipe.objects.create(**validated_data)
         recipe_new.tags.set(tags)
 
-        RecipeIngridient.objects.bulk_create(
-            self.get_ingredient_list(recipe=recipe_new)
-        )
+        self.get_ingredient_list(recipe_new, ingredients)
+        
         return recipe_new
 
     def update(self, instance, validated_data):
+        ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         
         instance.update(**validated_data)
         instance.tags.set(tags)
 
-        RecipeIngridient.objects.bulk_create(
-            self.get_ingredient_list(recipe=instance)
-        )
+        self.get_ingredient_list(instance, ingredients)
+        
         return instance
 
 
