@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from recipes.models import LIMITATION
 
 class User(AbstractUser):
     """Модель пользователей."""
@@ -10,8 +11,8 @@ class User(AbstractUser):
         max_length=200,
         unique=True
     )
-    first_name = models.CharField('Имя', max_length=200)
-    last_name = models.CharField('Фамилия', max_length=200)
+    first_name = models.CharField('Имя', max_length=LIMITATION)
+    last_name = models.CharField('Фамилия', max_length=LIMITATION)
 
 
 class Follow(models.Model):

@@ -221,7 +221,10 @@ class RecipeViewSet(ModelViewSet):
             RecipeIngridient.objects
             .all()
             .values('ingredient__name', 'ingredient__measurement_unit')
-            .annotate(amount=Sum('amount')))
+            .annotate(
+                amount=Sum('amount')
+            )
+        )
         shopping_cart = []
         for ingredient in ingredients:
             shopping_cart.append(
@@ -231,7 +234,7 @@ class RecipeViewSet(ModelViewSet):
             )
         return shopping_cart
     
-    @action(('post',), detail=False, permission_classes=(IsAuthenticated,))
+    @action(('get',), detail=False, permission_classes=(IsAuthenticated,))
     def download_ingredients(self, request):
         shopping_cart = self.create_ingredients_file()
         response = HttpResponse(shopping_cart, content_type='text/plain')

@@ -1,20 +1,13 @@
+from drf_extra_fields.fields import Base64ImageField
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 
 from rest_framework import serializers
-from drf_extra_fields.fields import Base64ImageField
 
-
-from recipes.models import Tag, Ingredient, Recipe, RecipeIngridient, Favorite, ShoppingCart
+from recipes.models import Tag, Ingredient, Recipe, RecipeIngridient, Favorite, ShoppingCart, LIMITATION
 
 User = get_user_model()
-
-
-FIELD_SERIALIZER_PASSWORD = serializers.CharField(
-    max_length=200,
-    write_only=True,
-    required=True
-)
 
 
 class UserSerializers(serializers.ModelSerializer):
@@ -35,8 +28,10 @@ class UserSerializers(serializers.ModelSerializer):
         )
         
     def get_is_subscribed(self, obj):
-        user = self.context['request'].user.is_authenticated
-        return obj.following.filter(user=user).exists()
+        user = self.context['request'].user
+        if obj.following.filter(user=user).exists():
+            return True
+        return False
 
 
 class TagSerializers(serializers.ModelSerializer):
@@ -150,7 +145,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         )
 
     @staticmethod
-    def get_ingredient_list(recipe, ingredients):
+    def create_ingredient_list(recipe, ingredients):
         ingredients_list = [
             RecipeIngridient(
                 amount=ingredient['amount'],
@@ -255,8 +250,8 @@ class PasswordSerializers(serializers.ModelSerializer):
     Сериализатор, предназначенный для проверки пароля.
     """
     
-    new_password = FIELD_SERIALIZER_PASSWORD
-    current_password = FIELD_SERIALIZER_PASSWORD
+    new_password = serializers.CharField(max_length=LIMITATION, write_only=True, required=True)
+    current_password = serializers.CharField(max_length=LIMITATION, write_only=True, required=True)
     
     def validate_new_password(self, value):
         user = self.context['request'].user

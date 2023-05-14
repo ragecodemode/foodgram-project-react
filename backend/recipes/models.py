@@ -6,13 +6,13 @@ User = get_user_model()
 
 MIN_VALUE_COOKING_TIME = 1
 VALUE_AMOUNT = 1
-
+LIMITATION = 200
 
 class Tag(models.Model):
     """Модель тегов рецептов."""
 
-    name = models.CharField(max_length=200, unique=True)
-    color = models.CharField(max_length=7, unique=True)
+    name = models.CharField(max_length=LIMITATION, unique=True)
+    color = models.CharField(max_length=LIMITATION, unique=True)
     slug = models.SlugField(unique=True)
     
     def __str__(self) -> str:
@@ -23,7 +23,7 @@ class Ingredient(models.Model):
     """Модель ингридиентов."""
     
     name = models.CharField(max_length=200)
-    measurement_unit = models.CharField('Единица измерения', max_length=200)
+    measurement_unit = models.CharField('Единица измерения', max_length=LIMITATION)
 
     def __str__(self) -> str:
         return f'{self.name}, {self.measurement_unit}.'
@@ -38,7 +38,7 @@ class Recipe(models.Model):
         related_name='recipe',
         verbose_name='Автор'
     )
-    name = models.CharField('Имя рецепта', max_length=200)
+    name = models.CharField('Имя рецепта', max_length=LIMITATION)
     image = models.ImageField(
         'Изображение рецепта',
         upload_to='static/recipe',

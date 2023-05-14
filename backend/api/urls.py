@@ -25,18 +25,16 @@ router_v1.register(r'recipes', RecipeViewSet)
 urlpatterns = [
     path(
         'users/<int:id>/subscribe/',
-        FollowView.as_view(),
+        FollowView.as_view({
+            'post': 'create',
+            'delete': 'delete'
+        }),
         name='follow'
     ),
     path(
         'recipes/<int:id>/favorite/',
         FavoriteViewSet.as_view(),
         name='favorite_recipe'
-    ),
-    path(
-        'users/<int:id>/subscribe/',
-        FavoriteView.as_view(),
-        name='favorite_user'
     ),
     path(
         'recipes/<int:id>/shopping_cart/',
