@@ -56,79 +56,6 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     search_fields = ('name',)
 
 
-class FavoriteView(APIView):
-    """
-    APIView класс.
-    Предоставляет только действия post() и delete().
-    Добавляет и удаляет рецепт из списка избранного.
-    """
-    
-    def post(self, request, id):
-        recipe = get_object_or_404(Recipe, id=id)
-        Favorite.objects.create(recipe=recipe, user=request.user)
-        serializer = RecipeShortSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def delete(self, request):
-        get_object_or_404(
-            Favorite,
-            user=request.user,
-            recipe=get_object_or_404(Recipe, id=id)
-        ).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class ShoppingCartView(APIView):
-    """
-    APIView класс.
-    Предоставляет только действия post(), delete().
-    Добавляет и удаляет рецепт из корзины покупок.
-    """
-    
-    def post(self, request, id):
-        recipe = get_object_or_404(Recipe, id=id)
-        ShoppingCart.objects.create(recipe=recipe, user=request.user)
-        serializer = ShoppingCartSerializers(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
- 
-    def delete(self, request):
-        get_object_or_404(
-            ShoppingCart,
-            user=request.user.id,
-            recipe=get_object_or_404(Recipe, id=id)
-        ).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class FollowView(APIView):
-    """
-    API класс.
-    Предоставляет только действия post(), delete().
-    Создания и удаления подписки.
-    """
-
-    def post(self, request, id):
-        following_user = get_object_or_404(User, id=id)
-        if User.objects.filter(user=request.user, following_user=following_user):
-            raise ParseError(
-                'Вы уже подписаны, подписываться на самого себя нельзя!'
-            )
-        else:
-            Follow.objects.create(follower=request.user, following=following_user)
-        serializer = FollowSerializers(following_user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-  
-    def delete(self, request, id):
-        following_user = get_object_or_404(User, id=id)
-        follow = Follow.objects.filter(follower=request.user, following_user=following_user)
-        if not follow:
-            raise ParseError(
-                'Вы не подписаны на этого пользователя!'
-            )   
-        follow.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
 class UserViewSet(ReadOnlyModelViewSet):
     """
     ViewSet модели User.
@@ -138,6 +65,29 @@ class UserViewSet(ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializers()
     permission_classes = (AllowAny,)
+    
+    @action(('post',), detail=False, permission_classes=(IsAuthenticated,))
+    def post_follow(self, request, id):
+        following_user = get_object_or_404(User, id=id)
+        if User.objects.filter(user=request.user, following_user=following_user):
+            raise ParseError(
+                'Вы уже подписаны, подписываться на самого себя нельзя!'
+            )
+        else:
+            Follow.objects.create(follower=request.user, following=following_user)
+        serializer = FollowSerializers(following_user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(('delete',), detail=False, permission_classes=(IsAuthenticated,))
+    def delete_follow(self, request, id):
+        following_user = get_object_or_404(User, id=id)
+        follow = Follow.objects.filter(follower=request.user, following_user=following_user)
+        if not follow:
+            raise ParseError(
+                'Вы не подписаны на этого пользователя!'
+            )   
+        follow.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(('get',), detail=False, permission_classes=(IsAuthenticated,))
     def get_current_user(self, request):
@@ -214,6 +164,38 @@ class RecipeViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @action(('post',), detail=False, permission_classes=(IsAuthenticated))
+    def post_shopping_cart(self, request, id):
+        recipe = get_object_or_404(Recipe, id=id)
+        ShoppingCart.objects.create(recipe=recipe, user=request.user)
+        serializer = ShoppingCartSerializers(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(('delete',), detail=False, permission_classes=(IsAuthenticated))
+    def delete_shopping_cart(self, request):
+        get_object_or_404(
+            ShoppingCart,
+            user=request.user.id,
+            recipe=get_object_or_404(Recipe, id=id)
+        ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(('post',), detail=False, permission_classes=(IsAuthenticated))
+    def post_favorite(self, request, id):
+        recipe = get_object_or_404(Recipe, id=id)
+        Favorite.objects.create(recipe=recipe, user=request.user)
+        serializer = RecipeShortSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(('delete',), detail=False, permission_classes=(IsAuthenticated))
+    def delete_favorite(self, request):
+        get_object_or_404(
+            Favorite,
+            user=request.user,
+            recipe=get_object_or_404(Recipe, id=id)
+        ).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
     def create_ingredients_file():

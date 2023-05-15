@@ -140,3 +140,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 6,
 }
+
+MIN_VALUE_COOKING_TIME = 1
+VALUE_AMOUNT = 1
+LIMITATION = 200

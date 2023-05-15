@@ -1,9 +1,9 @@
-from drf_extra_fields.fields import Base64ImageField
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 
 from rest_framework import serializers
+
+from drf_extra_fields.fields import Base64ImageField
 
 from recipes.models import Tag, Ingredient, Recipe, RecipeIngridient, Favorite, ShoppingCart, LIMITATION
 
@@ -29,9 +29,7 @@ class UserSerializers(serializers.ModelSerializer):
         
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        if obj.following.filter(user=user).exists():
-            return True
-        return False
+        return user.follows.filter(following=obj).exists() if user.is_authenticated else False
 
 
 class TagSerializers(serializers.ModelSerializer):

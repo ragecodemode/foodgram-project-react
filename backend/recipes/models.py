@@ -2,6 +2,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.core.validators import MinValueValidator
 
+from backend.settings import LIMITATION, MIN_VALUE_COOKING_TIME, VALUE_AMOUNT 
+
 User = get_user_model()
 
 MIN_VALUE_COOKING_TIME = 1

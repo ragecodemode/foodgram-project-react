@@ -23,24 +23,6 @@ router_v1.register(r'recipes', RecipeViewSet)
 
 
 urlpatterns = [
-    path(
-        'users/<int:id>/subscribe/',
-        FollowView.as_view({
-            'post': 'create',
-            'delete': 'delete'
-        }),
-        name='follow'
-    ),
-    path(
-        'recipes/<int:id>/favorite/',
-        FavoriteViewSet.as_view(),
-        name='favorite_recipe'
-    ),
-    path(
-        'recipes/<int:id>/shopping_cart/',
-        ShoppingCartView.as_view(),
-        name='shopping_cart'
-    ),
     path('', include(router_v1.urls)),
     path('auth/',include('djoser.urls.authtoken')),
     path('', include('djoser.urls')),
