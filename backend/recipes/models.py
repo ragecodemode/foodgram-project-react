@@ -95,7 +95,7 @@ class RecipeIngridient(models.Model):
         verbose_name = 'Колличество ингридиентов'
         constraints = [
             models.UniqueConstraint(
-                fields=['recipe', 'ingridient'],
+                fields=['recipe', 'ingredient'],
                 name='value_amount',
             ),
         ]
