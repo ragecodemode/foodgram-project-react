@@ -1,9 +1,13 @@
-FROM python:3.7-slim 
+FROM python:3.9-slim
 
-WORKDIR /app 
+RUN apt update && apt install -y gcc cmake libpq-dev python-dev
 
-COPY . . 
+WORKDIR /app
 
-RUN pip3 install -r api_yamdb/requirements.txt --no-cache-dir 
+COPY requirements.txt .
 
-CMD ["gunicorn", "api_yamdb.wsgi:application", "--bind", "0:8000"] 
+RUN pip install -r requirements.txt
+
+COPY . .
+
+CMD [ "gunicorn", "backend.wsgi:application", "--bind", "0.0.0.0:8000" ]
