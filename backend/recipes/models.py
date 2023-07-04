@@ -2,13 +2,16 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.core.validators import MinValueValidator
 
-from backend.settings import LIMITATION, MIN_VALUE_COOKING_TIME, VALUE_AMOUNT 
+from backend.settings import LIMITATION, MIN_VALUE_COOKING_TIME, VALUE_AMOUNT
 
 User = get_user_model()
 
 MIN_VALUE_COOKING_TIME = 1
+
 VALUE_AMOUNT = 1
+
 LIMITATION = 200
+
 
 class Tag(models.Model):
     """Модель тегов рецептов."""
@@ -16,24 +19,24 @@ class Tag(models.Model):
     name = models.CharField(max_length=LIMITATION, unique=True)
     color = models.CharField(max_length=LIMITATION, unique=True)
     slug = models.SlugField(unique=True)
-    
+
     def __str__(self) -> str:
         return self.name
 
 
 class Ingredient(models.Model):
     """Модель ингридиентов."""
-    
+
     name = models.CharField(max_length=200)
     measurement_unit = models.CharField('Единица измерения', max_length=LIMITATION)
 
     def __str__(self) -> str:
         return f'{self.name}, {self.measurement_unit}.'
 
-   
+
 class Recipe(models.Model):
     """Модель рецептов."""
-    
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -60,11 +63,9 @@ class Recipe(models.Model):
     pub_date = models.DateField(auto_now_add=True)
     tags = models.ManyToManyField(Tag, verbose_name='Теги')
 
-
     def __str__(self) -> str:
         return self.name
 
- 
     class Meta:
         verbose_name = 'Рецепты'
         ordering = ('-pub_date',)
@@ -72,7 +73,7 @@ class Recipe(models.Model):
 
 class RecipeIngridient(models.Model):
     """Моедль, связывающая количество ингридиентов и рецепт."""
-    
+ 
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
@@ -90,7 +91,7 @@ class RecipeIngridient(models.Model):
         },
         default=VALUE_AMOUNT,
     )
-    
+
     class Meta:
         verbose_name = 'Колличество ингридиентов'
         constraints = [
@@ -100,7 +101,7 @@ class RecipeIngridient(models.Model):
             ),
         ]
 
-       
+
 class Favorite(models.Model):
     """Модель избранного рецепта пользователя."""
 
@@ -126,7 +127,7 @@ class Favorite(models.Model):
                 name='favorite_recipe',
             ),
         ]
-    
+ 
 
 class ShoppingCart(models.Model):
     """Модель списка покупок."""
@@ -148,7 +149,7 @@ class ShoppingCart(models.Model):
     class Meta:
         verbose_name = 'Список покупок'
         ordering = ['-recipe']
-        constraints =[
+        constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'user'],
                 name='shopping_list',

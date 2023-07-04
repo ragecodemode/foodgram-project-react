@@ -1,11 +1,10 @@
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
-from django.contrib.auth import get_user_model
 from django.db.models import Exists, OuterRef, Sum
+# from djoser.views import UserViewSet
 
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
-from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.filters import SearchFilter
 from rest_framework import status
@@ -16,18 +15,24 @@ from .serializers import (
     TagSerializers,
     IngredientSerializers,
     ShoppingCartSerializers,
-    FollowSerializers,
+    SubscriptionsSerializers,
     RecipeShortSerializer,
-    UserSerializers,
     RecipeListCreateSerializer,
     RecipeRetrieveUpdate,
+    UserCreateSerializer,
 )
-from recipes.models import Tag, Ingredient, Favorite, Recipe, ShoppingCart, RecipeIngridient
+from recipes.models import (
+    Tag,
+    Ingredient,
+    Favorite,
+    Recipe,
+    ShoppingCart,
+    RecipeIngridient,
+)
+from users.models import User
 from users.models import Follow
 from api.permissions import IsAuthenticatedOrReadOnly
 from api.filters import RecipeFilter
-
-User = get_user_model()
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -63,9 +68,9 @@ class UserViewSet(ReadOnlyModelViewSet):
     """
 
     queryset = User.objects.all()
-    serializer_class = UserSerializers()
+    serializer_class = UserCreateSerializer()
     permission_classes = (AllowAny,)
-    
+
     @action(('post',), detail=False, permission_classes=(IsAuthenticated,))
     def post_follow(self, request, id):
         following_user = get_object_or_404(User, id=id)
@@ -75,7 +80,7 @@ class UserViewSet(ReadOnlyModelViewSet):
             )
         else:
             Follow.objects.create(follower=request.user, following=following_user)
-        serializer = FollowSerializers(following_user)
+        serializer = SubscriptionsSerializers(following_user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(('delete',), detail=False, permission_classes=(IsAuthenticated,))
@@ -85,7 +90,7 @@ class UserViewSet(ReadOnlyModelViewSet):
         if not follow:
             raise ParseError(
                 'Вы не подписаны на этого пользователя!'
-            )   
+            )
         follow.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -114,7 +119,7 @@ class UserViewSet(ReadOnlyModelViewSet):
     def subscriptions(self, request):
         """
         Запрос к эндпоинту /subscriptions/.
-        Получения списка пользователей, 
+        Получения списка пользователей,
         на которых подписан пользователь.
         """
         user = request.user
@@ -128,16 +133,16 @@ class RecipeViewSet(ModelViewSet):
     ViewSet модели Recipe.
     Поддерживает полный набор действий.
     """
-    
+
     queryset = Recipe.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly,)
     filterset_class = RecipeFilter()
-    
+
     def get_serializer_class(self):
         if self.request.user.is_staff:
             return RecipeListCreateSerializer
         return RecipeRetrieveUpdate
-    
+
     def get_queryset(self):
         user = self.request.user
         if not user.is_authenticated:
@@ -151,7 +156,7 @@ class RecipeViewSet(ModelViewSet):
             .annotate(
                 is_in_shopping_cart=Exists(
                     ShoppingCart.objects.filter(
-                        user=self.request.user, recipes=OuterRef('id')
+                        user=self.request.user, recipe=OuterRef('id')
                     )
                 ),
                 is_favorited=Exists(
@@ -215,7 +220,7 @@ class RecipeViewSet(ModelViewSet):
                 f'{ingredient["ingredient__measurement_unit"]}\n'
             )
         return shopping_cart
-    
+
     @action(('get',), detail=False, permission_classes=(IsAuthenticated,))
     def download_ingredients(self, request):
         shopping_cart = self.create_ingredients_file()
