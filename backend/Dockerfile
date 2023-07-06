@@ -1,13 +1,9 @@
-FROM python:3.9-slim
-
-RUN apt update && apt install -y gcc cmake libpq-dev python-dev
+FROM python:3.7-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY . /app
 
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt --no-cache-dir
 
-COPY . .
-
-CMD [ "gunicorn", "backend.wsgi:application", "--bind", "0.0.0.0:8000" ]
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000" ]
