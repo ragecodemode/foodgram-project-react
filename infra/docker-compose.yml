@@ -7,7 +7,7 @@ services:
     volumes:
       - database:/var/lib/postgresql/data/
     env_file:
-      - .env
+      - ./.env
 
   backend:
     image: ragecode/foodgram_backend:latest
@@ -18,7 +18,7 @@ services:
     depends_on:
       - db
     env_file:
-      - .env
+      - ./.env
 
   frontend:
     image: ragecode/foodgram_frontend:latest
@@ -40,6 +40,9 @@ services:
       - media_value:/var/html/media/
     depends_on:
       - frontend
+      - backend
+    env_file:
+      - ./.env
 
 volumes:
   database:
