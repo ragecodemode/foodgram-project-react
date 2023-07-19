@@ -1,25 +1,26 @@
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.db.models import Exists, OuterRef, Sum
-# from djoser.views import UserViewSet
+from djoser.views import UserViewSet
 
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.filters import SearchFilter
 from rest_framework import status
-from rest_framework.exceptions import ParseError
 from rest_framework.decorators import action
 
 from .serializers import (
     TagSerializers,
     IngredientSerializers,
     ShoppingCartSerializers,
-    SubscriptionsSerializers,
     RecipeShortSerializer,
     RecipeListCreateSerializer,
     RecipeRetrieveUpdate,
     UserCreateSerializer,
+    UserSerializers,
+    PasswordSerializers,
+    FollowSerializer,
 )
 from recipes.models import (
     Tag,
@@ -30,7 +31,6 @@ from recipes.models import (
     RecipeIngridient,
 )
 from users.models import User
-from users.models import Follow
 from api.permissions import IsAuthenticatedOrReadOnly
 from api.filters import RecipeFilter
 
@@ -61,7 +61,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     search_fields = ('name',)
 
 
-class UserViewSet(ReadOnlyModelViewSet):
+class UserViewSet(UserViewSet):
     """
     ViewSet модели User.
     Полный набор действий.
@@ -71,28 +71,14 @@ class UserViewSet(ReadOnlyModelViewSet):
     serializer_class = UserCreateSerializer()
     permission_classes = (AllowAny,)
 
-    @action(('post',), detail=False, permission_classes=(IsAuthenticated,))
-    def post_follow(self, request, id):
-        following_user = get_object_or_404(User, id=id)
-        if User.objects.filter(user=request.user, following_user=following_user):
-            raise ParseError(
-                'Вы уже подписаны, подписываться на самого себя нельзя!'
-            )
-        else:
-            Follow.objects.create(follower=request.user, following=following_user)
-        serializer = SubscriptionsSerializers(following_user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    @action(('delete',), detail=False, permission_classes=(IsAuthenticated,))
-    def delete_follow(self, request, id):
-        following_user = get_object_or_404(User, id=id)
-        follow = Follow.objects.filter(follower=request.user, following_user=following_user)
-        if not follow:
-            raise ParseError(
-                'Вы не подписаны на этого пользователя!'
-            )
-        follow.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def get_serializer_class(self):
+        if self.action == "create":
+            return UserCreateSerializer
+        if self.action == "set_password":
+            return PasswordSerializers
+        if self.action == "subscriptions":
+            return FollowSerializer
+        return UserSerializers
 
     @action(('get',), detail=False, permission_classes=(IsAuthenticated,))
     def get_current_user(self, request):
@@ -156,12 +142,12 @@ class RecipeViewSet(ModelViewSet):
             .annotate(
                 is_in_shopping_cart=Exists(
                     ShoppingCart.objects.filter(
-                        user=self.request.user, recipe=OuterRef('id')
+                        user=self.request.user, recipe=OuterRef('pk')
                     )
                 ),
                 is_favorited=Exists(
                     Favorite.objects.filter(
-                        user=self.request.user, recipe=OuterRef('id')
+                        user=self.request.user, recipe=OuterRef('pk')
                     )
                 ),
             )

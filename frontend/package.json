@@ -7,11 +7,12 @@
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
     "classnames": "^2.2.6",
+    "package-lock.json": "^1.0.0",
+    "package.json": "^0.0.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-meta-tags": "^1.0.1",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "4.0.2",
     "web-vitals": "^1.0.1"
   },
   "scripts": {
@@ -38,5 +39,8 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://web:8000/"
+  "proxy": "http://web:8000/",
+  "devDependencies": {
+    "react-scripts": "^5.0.1"
+  }
 }
