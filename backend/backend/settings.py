@@ -60,23 +60,23 @@ WSGI_APPLICATION = "backend.wsgi.application"
 
 
 # Database
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-    }
-}
-
 # DATABASES = {
 #     "default": {
-#         "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.postgresql"),
-#         "NAME": os.getenv("DB_NAME", "postgres"),
-#         "USER": os.getenv("POSTGRES_USER", "postgres"),
-#         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
-#         "HOST": os.getenv("DB_HOST", "db"),
-#         "PORT": os.getenv("DB_PORT", "5432"),
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
 #     }
 # }
+
+DATABASES = {
+    "default": {
+        "ENGINE": os.getenv("DB_ENGINE", "django.db.backends.postgresql"),
+        "NAME": os.getenv("DB_NAME", "postgres"),
+        "USER": os.getenv("POSTGRES_USER", "postgres"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
+        "HOST": os.getenv("DB_HOST", "db"),
+        "PORT": os.getenv("DB_PORT", "5432"),
+    }
+}
 
 
 # Password validation
@@ -133,7 +133,9 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": (
+        "rest_framework.pagination.PageNumberPagination"
+    ),
     "PAGE_SIZE": 6,
 }
 

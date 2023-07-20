@@ -1,38 +1,24 @@
-from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
+from api.filters import RecipeFilter
+from api.permissions import IsAuthenticatedOrReadOnly
 from django.db.models import Exists, OuterRef, Sum
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-
-from rest_framework.response import Response
-from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.filters import SearchFilter
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngridient,
+                            ShoppingCart, Tag)
 from rest_framework import status
 from rest_framework.decorators import action
-
-from .serializers import (
-    TagSerializers,
-    IngredientSerializers,
-    ShoppingCartSerializers,
-    RecipeShortSerializer,
-    RecipeListCreateSerializer,
-    RecipeRetrieveUpdate,
-    UserCreateSerializer,
-    UserSerializers,
-    PasswordSerializers,
-    FollowSerializer,
-)
-from recipes.models import (
-    Tag,
-    Ingredient,
-    Favorite,
-    Recipe,
-    ShoppingCart,
-    RecipeIngridient,
-)
+from rest_framework.filters import SearchFilter
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from users.models import User
-from api.permissions import IsAuthenticatedOrReadOnly
-from api.filters import RecipeFilter
+
+from .serializers import (FollowSerializer, IngredientSerializers,
+                          PasswordSerializers, RecipeListCreateSerializer,
+                          RecipeRetrieveUpdate, RecipeShortSerializer,
+                          ShoppingCartSerializers, TagSerializers,
+                          UserCreateSerializer, UserSerializers)
 
 
 class TagViewSet(ReadOnlyModelViewSet):

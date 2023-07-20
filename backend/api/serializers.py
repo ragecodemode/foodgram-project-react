@@ -1,23 +1,10 @@
 import django.contrib.auth.password_validation as validators
 from django.contrib.auth.password_validation import validate_password
 from djoser.serializers import UserCreateSerializer, UserSerializer
-
-from rest_framework import serializers
-
-# from rest_framework.validators import UniqueValidator
-
 from drf_extra_fields.fields import Base64ImageField
-
-from recipes.models import (
-    Tag,
-    Ingredient,
-    Recipe,
-    RecipeIngridient,
-    Favorite,
-    ShoppingCart,
-    LIMITATION,
-)
-
+from recipes.models import (LIMITATION, Favorite, Ingredient, Recipe,
+                            RecipeIngridient, ShoppingCart, Tag)
+from rest_framework import serializers
 from users.models import User
 
 

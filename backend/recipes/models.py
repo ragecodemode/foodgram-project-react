@@ -1,9 +1,8 @@
-from django.db import models
 from django.core.validators import MinValueValidator
+from django.db import models
+from users.models import User
 
 from backend.settings import LIMITATION, MIN_VALUE_COOKING_TIME, VALUE_AMOUNT
-
-from users.models import User
 
 
 class Tag(models.Model):
