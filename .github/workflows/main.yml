@@ -68,8 +68,8 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
           script: | 
             sudo docker-compose down
-            sudo docker pull ivanmatveev/foodgram_backend:latest
-            sudo docker pull ivanmatveev/foodgram_frontend:latest
+            sudo docker pull ragecode/foodgram_backend:latest
+            sudo docker pull ragecode/foodgram_frontend:latest
             touch .env
             echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
             echo DB_NAME=${{ secrets.DB_NAME }} >> .env
