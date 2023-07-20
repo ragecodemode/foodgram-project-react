@@ -58,7 +58,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     permission_classes = (AllowAny,)
     pagination_class = None
     filter_backends = (SearchFilter,)
-    search_fields = ('name',)
+    search_fields = ("name",)
 
 
 class UserViewSet(UserViewSet):
@@ -80,7 +80,7 @@ class UserViewSet(UserViewSet):
             return FollowSerializer
         return UserSerializers
 
-    @action(('get',), detail=False, permission_classes=(IsAuthenticated,))
+    @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
     def get_current_user(self, request):
         """
         Запрос к эндпоинту /me/.
@@ -89,7 +89,7 @@ class UserViewSet(UserViewSet):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
-    @action(('post',), detail=False, permission_classes=(IsAuthenticated,))
+    @action(("post",), detail=False, permission_classes=(IsAuthenticated,))
     def set_password(self, request):
         """
         Запрос к эндпоинту /set_password/.
@@ -97,11 +97,11 @@ class UserViewSet(UserViewSet):
         """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.user.set_password(serializer.data.get('new_password'))
+        self.user.set_password(serializer.data.get("new_password"))
         self.user.save()
         return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
 
-    @action(('get',), detail=False, permission_classes=(IsAuthenticated,))
+    @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
         """
         Запрос к эндпоинту /subscriptions/.
@@ -134,20 +134,23 @@ class RecipeViewSet(ModelViewSet):
         if not user.is_authenticated:
             user = None
         return (
-            Recipe.objects.select_related('author')
+            Recipe.objects.select_related("author")
             .prefetch_related(
-                'tags', 'ingredients', 'recipe',
-                'shopping_cart', 'favorite_recipe'
+                "tags",
+                "ingredients",
+                "recipe",
+                "shopping_cart",
+                "favorite_recipe"
             )
             .annotate(
                 is_in_shopping_cart=Exists(
                     ShoppingCart.objects.filter(
-                        user=self.request.user, recipe=OuterRef('pk')
+                        user=self.request.user, recipe=OuterRef("pk")
                     )
                 ),
                 is_favorited=Exists(
                     Favorite.objects.filter(
-                        user=self.request.user, recipe=OuterRef('pk')
+                        user=self.request.user, recipe=OuterRef("pk")
                     )
                 ),
             )
@@ -156,47 +159,44 @@ class RecipeViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(('post',), detail=False, permission_classes=(IsAuthenticated))
+    @action(("post",), detail=False, permission_classes=(IsAuthenticated))
     def post_shopping_cart(self, request, id):
         recipe = get_object_or_404(Recipe, id=id)
         ShoppingCart.objects.create(recipe=recipe, user=request.user)
         serializer = ShoppingCartSerializers(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(('delete',), detail=False, permission_classes=(IsAuthenticated))
+    @action(("delete",), detail=False, permission_classes=(IsAuthenticated))
     def delete_shopping_cart(self, request):
         get_object_or_404(
-            ShoppingCart,
-            user=request.user.id,
-            recipe=get_object_or_404(Recipe, id=id)
+            ShoppingCart, user=request.user.id, recipe=get_object_or_404(
+                Recipe, id=id
+            )
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(('post',), detail=False, permission_classes=(IsAuthenticated))
+    @action(("post",), detail=False, permission_classes=(IsAuthenticated))
     def post_favorite(self, request, id):
         recipe = get_object_or_404(Recipe, id=id)
         Favorite.objects.create(recipe=recipe, user=request.user)
         serializer = RecipeShortSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(('delete',), detail=False, permission_classes=(IsAuthenticated))
+    @action(("delete",), detail=False, permission_classes=(IsAuthenticated))
     def delete_favorite(self, request):
         get_object_or_404(
-            Favorite,
-            user=request.user,
-            recipe=get_object_or_404(Recipe, id=id)
+            Favorite, user=request.user, recipe=get_object_or_404(
+                Recipe, id=id
+            )
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
     def create_ingredients_file():
         ingredients = (
-            RecipeIngridient.objects
-            .all()
-            .values('ingredient__name', 'ingredient__measurement_unit')
-            .annotate(
-                amount=Sum('amount')
-            )
+            RecipeIngridient.objects.all()
+            .values("ingredient__name", "ingredient__measurement_unit")
+            .annotate(amount=Sum("amount"))
         )
         shopping_cart = []
         for ingredient in ingredients:
@@ -207,9 +207,11 @@ class RecipeViewSet(ModelViewSet):
             )
         return shopping_cart
 
-    @action(('get',), detail=False, permission_classes=(IsAuthenticated,))
+    @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
     def download_ingredients(self, request):
         shopping_cart = self.create_ingredients_file()
-        response = HttpResponse(shopping_cart, content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename="ingredients.txt"'
+        response = HttpResponse(shopping_cart, content_type="text/plain")
+        response["Content-Disposition"] = (
+            'attachment; filename="ingredients.txt"'
+        )
         return response
