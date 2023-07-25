@@ -1,4 +1,3 @@
-import django.contrib.auth.password_validation as validators
 from django.contrib.auth.password_validation import validate_password
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
@@ -46,10 +45,6 @@ class UserCreateSerializer(UserCreateSerializer):
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
-
-    def validate_password(self, password):
-        validators.validate_password(password)
-        return password
 
 
 class TagSerializers(serializers.ModelSerializer):
