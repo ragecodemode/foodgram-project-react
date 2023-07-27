@@ -4,6 +4,7 @@ from django.db.models import Exists, OuterRef, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
+from django.contrib.auth import get_user_model
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngridient,
                             ShoppingCart, Tag)
 from rest_framework import status
@@ -12,13 +13,14 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from users.models import User
 
 from .serializers import (FollowSerializer, IngredientSerializers,
                           PasswordSerializers, RecipeListCreateSerializer,
                           RecipeRetrieveUpdate, RecipeShortSerializer,
                           ShoppingCartSerializers, TagSerializers,
                           UserCreateSerializer, UserSerializers)
+
+User = get_user_model()
 
 
 class TagViewSet(ReadOnlyModelViewSet):
