@@ -14,6 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
     Сериализатор модели User.
     Вывод информации о пользователях.
     """
+    is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
         model = User

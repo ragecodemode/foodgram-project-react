@@ -21,7 +21,6 @@ class User(AbstractUser):
         max_length=150,
         unique=True,
     )
-    is_subscribed = models.BooleanField(default=False)
 
 
 class Follow(models.Model):
