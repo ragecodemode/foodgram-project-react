@@ -14,11 +14,11 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from .serializers import (FollowSerializer, IngredientSerializers,
-                          PasswordSerializers, RecipeListCreateSerializer,
+from .serializers import (FollowSerializer, IngredientSerializer,
+                          PasswordSerializer, RecipeListCreateSerializer,
                           RecipeRetrieveUpdate, RecipeShortSerializer,
-                          ShoppingCartSerializers, TagSerializers,
-                          UserCreateSerializer, UserSerializers)
+                          ShoppingCartSerializer, TagSerializer,
+                          UserCreateSerializer, UserSerializer)
 
 User = get_user_model()
 
@@ -30,7 +30,7 @@ class TagViewSet(ReadOnlyModelViewSet):
     """
 
     queryset = Tag.objects.all()
-    serializer_class = TagSerializers
+    serializer_class = TagSerializer
     permission_classes = (AllowAny,)
     pagination_class = None
 
@@ -42,7 +42,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     """
 
     queryset = Ingredient.objects.all()
-    serializer_class = IngredientSerializers
+    serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
     pagination_class = None
     filter_backends = (SearchFilter,)
@@ -63,10 +63,10 @@ class UserViewSet(UserViewSet):
         if self.action == "create":
             return UserCreateSerializer
         if self.action == "set_password":
-            return PasswordSerializers
+            return PasswordSerializer
         if self.action == "subscriptions":
             return FollowSerializer
-        return UserSerializers
+        return UserSerializer
 
     @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
     def get_current_user(self, request):
@@ -151,7 +151,7 @@ class RecipeViewSet(ModelViewSet):
     def post_shopping_cart(self, request, id):
         recipe = get_object_or_404(Recipe, id=id)
         ShoppingCart.objects.create(recipe=recipe, user=request.user)
-        serializer = ShoppingCartSerializers(recipe)
+        serializer = ShoppingCartSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(("delete",), detail=False, permission_classes=(IsAuthenticated))

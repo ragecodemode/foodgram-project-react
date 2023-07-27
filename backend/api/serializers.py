@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-from djoser.serializers import UserCreateSerializer, UserSerializer
+from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import (LIMITATION, Favorite, Ingredient, Recipe,
                             RecipeIngridient, ShoppingCart, Tag)
@@ -9,7 +9,7 @@ from rest_framework import serializers
 User = get_user_model()
 
 
-class UserSerializers(UserSerializer):
+class UserSerializer(serializers.ModelSerializer):
     """
     Сериализатор модели User.
     Вывод информации о пользователях.
@@ -49,7 +49,7 @@ class UserCreateSerializer(UserCreateSerializer):
         return User.objects.create_user(**validated_data)
 
 
-class TagSerializers(serializers.ModelSerializer):
+class TagSerializer(serializers.ModelSerializer):
     """
     Сериализатор модели Tag.
     Вывод информации о тегах.
@@ -60,7 +60,7 @@ class TagSerializers(serializers.ModelSerializer):
         feilds = "__all__"
 
 
-class IngredientSerializers(serializers.ModelSerializer):
+class IngredientSerializer(serializers.ModelSerializer):
     """
     Сериализатор модели Ingredient.
     Вывод информации об ингридиентов.
@@ -71,7 +71,7 @@ class IngredientSerializers(serializers.ModelSerializer):
         feilds = "__all__"
 
 
-class RecipeIngridientSerializers(serializers.ModelSerializer):
+class RecipeIngridientSerializer(serializers.ModelSerializer):
     """
     Сериализатор модели RecipeIngridient.
     Запись о количестве ингредиента.
@@ -116,9 +116,9 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
     Вывод информации о рецептах.
     """
 
-    tags = TagSerializers()
-    ingredient = RecipeIngridientSerializers(many=True)
-    author = UserSerializers()
+    tags = TagSerializer()
+    ingredient = RecipeIngridientSerializer(many=True)
+    author = UserSerializer()
     is_favorited = serializers.BooleanField()
     is_in_shopping_cart = serializers.BooleanField()
 
@@ -143,7 +143,7 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
         Метод для получения списка ингредиентов, связанных с рецептом.
         """
         ingredient = RecipeIngridient.objects.filter(recipe=obj)
-        return IngredientSerializers(ingredient).data
+        return IngredientSerializer(ingredient).data
 
 
 class RecipeRetrieveUpdate(serializers.ModelSerializer):
@@ -152,8 +152,8 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
     Изменения рецепта.
     """
 
-    ingredient = RecipeIngridientSerializers(many=True)
-    author = UserSerializers()
+    ingredient = RecipeIngridientSerializer(many=True)
+    author = UserSerializer()
     image = Base64ImageField()
 
     class Meta:
@@ -203,7 +203,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         return instance
 
 
-class FavoriteSerializers(serializers.ModelSerializer):
+class FavoriteSerializer(serializers.ModelSerializer):
     """
     Сериализатор модели Favorite.
     Добавление рецепта в избранное.
@@ -227,7 +227,7 @@ class FavoriteSerializers(serializers.ModelSerializer):
         return data
 
 
-class ShoppingCartSerializers(serializers.ModelSerializer):
+class ShoppingCartSerializer(serializers.ModelSerializer):
     """
     Сериализатор модели ShoppingCart.
     Вывод информации об списке покупак.
@@ -250,7 +250,7 @@ class ShoppingCartSerializers(serializers.ModelSerializer):
         return data
 
 
-class SubscriptionsSerializers(serializers.ModelSerializer):
+class SubscriptionsSerializer(serializers.ModelSerializer):
     """
     Сериализатор модели Follow.
     Вывод подписок пользователя.
@@ -292,7 +292,7 @@ class SubscriptionsSerializers(serializers.ModelSerializer):
         return RecipeShortSerializer(queryset, many=True).data
 
 
-class PasswordSerializers(serializers.ModelSerializer):
+class PasswordSerializer(serializers.ModelSerializer):
     """
     Сериализатор, предназначенный для проверки пароля.
     """
