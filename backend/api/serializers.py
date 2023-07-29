@@ -305,6 +305,10 @@ class PasswordSerializer(serializers.ModelSerializer):
         max_length=LIMITATION, write_only=True, required=True
     )
 
+    class Meta:
+        model = User
+        fields = ('new_password', 'current_password')
+
     def validate_new_password(self, value):
         user = self.context["request"].user
         validate_password(
