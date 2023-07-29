@@ -86,10 +86,11 @@ class UserViewSet(UserViewSet):
         Запрос к эндпоинту /set_password/.
         Изменения пfроля.
         """
+        user = self.request.user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.user.set_password(serializer.data.get("new_password"))
-        self.user.save()
+        user.set_password(serializer.data.get("new_password"))
+        user.save()
         return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
 
     @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
