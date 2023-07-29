@@ -311,9 +311,7 @@ class PasswordSerializer(serializers.ModelSerializer):
 
     def validate_new_password(self, value):
         user = self.context["request"].user
-        validate_password(
-            password_value=value, password_fields="new_password", user=user
-        )
+        validate_password(password_fields="new_password", user=user)
         return value
 
     def validate_current_password(self, value):

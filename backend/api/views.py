@@ -7,6 +7,7 @@ from djoser.views import UserViewSet
 from django.contrib.auth import get_user_model
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngridient,
                             ShoppingCart, Tag)
+from users.models import Follow
 
 from rest_framework import status
 from rest_framework.decorators import action
@@ -99,7 +100,9 @@ class UserViewSet(UserViewSet):
         на которых подписан пользователь.
         """
         user = request.user
-        queryset = User.objects.filter(following__user=user)
+        queryset = Follow.objects.filter(
+            follower=user, follower__is__active=True
+        ).select_related("following")
         pages = self.paginate_queryset(queryset)
         serializer = SubscriptionsSerializer(
             pages, many=True, context={'request': request}
