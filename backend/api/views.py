@@ -101,7 +101,9 @@ class UserViewSet(UserViewSet):
         """
         user = request.user
         queryset = Follow.objects.filter(
-            follower=user, follower__is__active=True
+            follower=user,
+            follower__is__active=True,
+            follower__exact=user,
         ).select_related("following")
         pages = self.paginate_queryset(queryset)
         serializer = SubscriptionsSerializer(
