@@ -7,6 +7,7 @@ from djoser.views import UserViewSet
 from django.contrib.auth import get_user_model
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngridient,
                             ShoppingCart, Tag)
+
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -18,7 +19,8 @@ from .serializers import (FollowSerializer, IngredientSerializer,
                           PasswordSerializer, RecipeListCreateSerializer,
                           RecipeRetrieveUpdate, RecipeShortSerializer,
                           ShoppingCartSerializer, TagSerializer,
-                          UserCreateSerializer, UserSerializer)
+                          UserCreateSerializer, UserSerializer,
+                          SubscriptionsSerializer)
 
 User = get_user_model()
 
@@ -97,9 +99,12 @@ class UserViewSet(UserViewSet):
         на которых подписан пользователь.
         """
         user = request.user
-        queryset = user.subscribers.all()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        queryset = User.objects.filter(user=user)
+        pages = self.paginate_queryset(queryset)
+        serializer = SubscriptionsSerializer(
+            pages, many=True, context={'request': request}
+        )
+        return self.get_paginated_response(serializer.data)
 
 
 class RecipeViewSet(ModelViewSet):
