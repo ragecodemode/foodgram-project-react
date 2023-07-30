@@ -100,17 +100,11 @@ class UserViewSet(UserViewSet):
         Получения списка пользователей,
         на которых подписан пользователь.
         """
-        user = request.user
-        queryset = Follow.objects.filter(
-            follower=user,
-            follower__is__active=True,
-            follower__exact=user,
+        subscriptions = Follow.objects.filter(
+            follower=request.user,
         ).select_related("following")
-        pages = self.paginate_queryset(queryset)
-        serializer = SubscriptionsSerializer(
-            pages, many=True, context={'request': request}
-        )
-        return self.get_paginated_response(serializer.data)
+        serializer = SubscriptionsSerializer(subscriptions, many=True)
+        return Response(serializer.data)
 
 
 class RecipeViewSet(ModelViewSet):
