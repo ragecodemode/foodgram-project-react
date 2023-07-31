@@ -1,5 +1,6 @@
 import csv
 
+from django.conf import settings
 from django.core.management import BaseCommand
 from recipes.models import Ingredient
 
@@ -8,8 +9,9 @@ class Command(BaseCommand):
     help = 'Загрузка данных из csv файла.'
 
     def handle(self, *args, **kwargs):
+        data_path = settings.BASE_DIR
         with open(
-            'ingredients.csv', encoding='utf-8',
+            f'{data_path}/data/ingredients.csv', encoding='utf-8',
         ) as file:
             reader = csv.reader(file)
             for ingridients in reader:
