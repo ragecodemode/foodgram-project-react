@@ -6,7 +6,7 @@ from backend.settings import LIMITATION, MIN_VALUE_COOKING_TIME, VALUE_AMOUNT
 
 
 class Tag(models.Model):
-    """Модель тегов рецептов."""
+    """Модель тегов."""
 
     name = models.CharField(max_length=LIMITATION, unique=True)
     color = models.CharField(max_length=LIMITATION, unique=True)
