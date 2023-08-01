@@ -131,7 +131,6 @@ class RecipeViewSet(ModelViewSet):
             .prefetch_related(
                 "tags",
                 "ingredients",
-                "recipe",
                 "shopping_cart",
                 "favorite_recipe"
             )

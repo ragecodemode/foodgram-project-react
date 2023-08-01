@@ -46,7 +46,9 @@ class Recipe(models.Model):
     )
     text = models.TextField("Описание рецепта")
     ingredients = models.ManyToManyField(
-        Ingredient, "Ингридиенты", verbose_name="ingredients"
+        Ingredient,
+        "Ингридиенты",
+        verbose_name="ingredients",
     )
     cooking_time = models.BigIntegerField(
         "Время готовки",
@@ -77,7 +79,9 @@ class RecipeIngridient(models.Model):
         related_name="Recipe",
     )
     ingredient = models.ForeignKey(
-        Ingredient, on_delete=models.CASCADE, related_name="Ingredients"
+        Ingredient,
+        on_delete=models.CASCADE,
+        related_name="Ingredients",
     )
     amount = models.FloatField(
         validators=(MinValueValidator(VALUE_AMOUNT),),
