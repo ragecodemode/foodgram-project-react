@@ -163,7 +163,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
             "id",
             "tags",
             "author",
-            "ingredients",
+            "ingredient",
             "name",
             "image",
             "text",
