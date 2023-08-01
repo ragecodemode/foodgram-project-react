@@ -8,10 +8,12 @@ from .models import (Favorite, Ingredient, Recipe, RecipeIngridient,
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('author', 'name', 'favorite_count', 'text', 'cooking_time')
     search_fields = ('author', 'name', 'tag')
+    list_filter = ('author', 'name', 'tags')
     empty_value_display = '-пусто-'
 
+    @admin.display(description='В избранном')
     def favorite_count(self, obj):
-        return obj.favorite_recipe.count()
+        return obj.favorites.count()
 
 
 @admin.register(Ingredient)

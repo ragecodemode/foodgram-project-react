@@ -150,7 +150,7 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
 class RecipeRetrieveUpdate(serializers.ModelSerializer):
     """
     Сериализатор модели Recipe.
-    Изменения рецепта.
+    Создание и изменения рецепта.
     """
 
     ingredient = RecipeIngridientSerializer(many=True)
