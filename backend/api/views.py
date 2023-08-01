@@ -77,8 +77,8 @@ class UserViewSet(UserViewSet):
         Запрос к эндпоинту /me/.
         Получения информации о текущем пользователе.
         """
-        serializer = self.get_serializer(request.user)
-        return Response(serializer.data)
+        self.get_object = self.request.user
+        return self.retrieve(request)
 
     @action(("post",), detail=False, permission_classes=(IsAuthenticated,))
     def set_password(self, request):

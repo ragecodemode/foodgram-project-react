@@ -152,7 +152,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
     Сериализатор модели Recipe.
     Создание и изменения рецепта.
     """
-
+    ingredients = RecipeIngridientSerializer(many=True)
     author = UserSerializer()
     image = Base64ImageField()
 
@@ -162,6 +162,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
             "id",
             "tags",
             "author",
+            "ingredients",
             "name",
             "image",
             "text",
