@@ -131,8 +131,6 @@ class RecipeViewSet(ModelViewSet):
             .prefetch_related(
                 "tags",
                 "ingredients",
-                "shopping_cart",
-                "favorite_recipe"
             )
             .annotate(
                 is_in_shopping_cart=Exists(
