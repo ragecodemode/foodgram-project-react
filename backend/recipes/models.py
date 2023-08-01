@@ -28,31 +28,6 @@ class Ingredient(models.Model):
         return f"{self.name}, {self.measurement_unit}."
 
 
-class Favorite(models.Model):
-    """Модель избранного рецепта пользователя."""
-
-    recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name="favorite"
-    )
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="favorite",
-    )
-
-    def __str__(self) -> str:
-        return f"{self.user} :: {self.recipe}"
-
-    class Meta:
-        verbose_name = "Колличество ингридиентов"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["recipe", "user"],
-                name="favorite_recipe",
-            ),
-        ]
-
-
 class Recipe(models.Model):
     """Модель рецептов."""
 
@@ -84,7 +59,6 @@ class Recipe(models.Model):
     )
     pub_date = models.DateField(auto_now_add=True)
     tags = models.ManyToManyField(Tag, verbose_name="Теги")
-    favorites = models.ManyToManyField(Favorite)
 
     def __str__(self) -> str:
         return self.name
@@ -119,6 +93,31 @@ class RecipeIngridient(models.Model):
             models.UniqueConstraint(
                 fields=["recipe", "ingredient"],
                 name="value_amount",
+            ),
+        ]
+
+
+class Favorite(models.Model):
+    """Модель избранного рецепта пользователя."""
+
+    recipe = models.ForeignKey(
+        Recipe, on_delete=models.CASCADE, related_name="favorite"
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="favorite",
+    )
+
+    def __str__(self) -> str:
+        return f"{self.user} :: {self.recipe}"
+
+    class Meta:
+        verbose_name = "Колличество ингридиентов"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["recipe", "user"],
+                name="favorite_recipe",
             ),
         ]
 
