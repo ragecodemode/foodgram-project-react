@@ -59,7 +59,6 @@ class Recipe(models.Model):
     )
     pub_date = models.DateField(auto_now_add=True)
     tags = models.ManyToManyField(Tag, verbose_name="Теги")
-    favorites = models.ManyToManyField(User, related_name='favorite_recipes')
 
     def __str__(self) -> str:
         return self.name
