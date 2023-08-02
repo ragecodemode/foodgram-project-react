@@ -83,7 +83,7 @@ class RecipeIngridient(models.Model):
         on_delete=models.CASCADE,
         related_name="Ingredients",
     )
-    amount = models.FloatField(
+    quantity = models.FloatField(
         validators=(MinValueValidator(VALUE_AMOUNT),),
         error_messages={
             "errorse": "Колличество не должно быть отрицательным."
