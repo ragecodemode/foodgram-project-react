@@ -78,9 +78,6 @@ class RecipeIngridientSerializer(serializers.ModelSerializer):
     Запись о количестве ингредиента.
     """
 
-    id = serializers.IntegerField()
-    amount = serializers.FloatField()
-
     class Meta:
         model = RecipeIngridient
         fields = "__all__"
