@@ -79,20 +79,11 @@ class RecipeIngridientSerializer(serializers.ModelSerializer):
     """
 
     id = serializers.IntegerField()
-    name = serializers.ReadOnlyField(source="ingredient.name")
-    measurement_unit = serializers.ReadOnlyField(
-        source="ingredient.measurement_unit"
-    )
     amount = serializers.FloatField()
 
     class Meta:
         model = RecipeIngridient
-        fields = (
-            "id",
-            "name",
-            "measurement_unit",
-            "amount",
-        )
+        fields = "__all__"
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
