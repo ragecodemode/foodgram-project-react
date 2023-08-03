@@ -146,7 +146,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        exclude = ("id",)
+        fields = "__all__"
 
     @staticmethod
     def create_ingredient_list(recipe, ingredients):
