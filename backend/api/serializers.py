@@ -78,7 +78,6 @@ class RecipeIngridientSerializer(serializers.ModelSerializer):
     Запись о количестве ингредиента.
     """
     recipe = serializers.ReadOnlyField(source="recipe.name")
-    ingredient = serializers.CharField(max_length=LIMITATION)
 
     class Meta:
         model = RecipeIngridient
