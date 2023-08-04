@@ -231,7 +231,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
 
 class SubscriptionsSerializer(serializers.ModelSerializer):
     """
-    Сериализатор модели Follow.
+    Сериализатор модели User.
     Вывод подписок пользователя.
     """
 
@@ -299,26 +299,3 @@ class PasswordSerializer(serializers.ModelSerializer):
                 "Не верный пароль. Введите пороль ещё раз."
             )
         return value
-
-
-class FollowSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор модели User.
-    Предназначен для вывода информации о пользователях и их рецептах,
-    на которых подписан текущий авторизованный пользователь.
-    """
-
-    is_subscribed = serializers.BooleanField(default=True)
-    recipes = RecipeShortSerializer(many=True)
-
-    class Meta:
-        model = User
-        fields = (
-            "email",
-            "id",
-            "username",
-            "first_name",
-            "last_name",
-            "is_subscribed",
-            "recipes",
-        )

@@ -16,12 +16,11 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from .serializers import (FollowSerializer, IngredientSerializer,
+from .serializers import (SubscriptionsSerializer, IngredientSerializer,
                           PasswordSerializer, RecipeListCreateSerializer,
                           RecipeRetrieveUpdate, RecipeShortSerializer,
                           ShoppingCartSerializer, TagSerializer,
-                          UserCreateSerializer, UserSerializer,
-                          SubscriptionsSerializer)
+                          UserCreateSerializer, UserSerializer)
 
 User = get_user_model()
 
@@ -68,7 +67,7 @@ class UserViewSet(UserViewSet):
         if self.action == "set_password":
             return PasswordSerializer
         if self.action == "subscriptions":
-            return FollowSerializer
+            return SubscriptionsSerializer
         return UserSerializer
 
     @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
