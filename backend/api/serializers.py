@@ -250,26 +250,6 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
             "is_subscribed",
         )
 
-    def get_recipes_count(self, obj):
-        """
-        Метод для получения количества рецептов,
-        созданных пользователем.
-        """
-        return obj.recipes.count()
-
-    def get_recipes(self, obj):
-        """
-        Метод для получения списка рецептов,
-        связанных с автором.
-        """
-        request = self.context.get("request")
-        limit = request.GET.get("recipes_limit")
-        queryset = Recipe.objects.filter(author=obj.author)
-        if limit is not None:
-            queryset = Recipe.objects.filter(author=obj.author)[: int(limit)]
-
-        return RecipeShortSerializer(queryset, many=True).data
-
 
 class PasswordSerializer(serializers.ModelSerializer):
     """
