@@ -150,6 +150,11 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
 
     @staticmethod
     def create_ingredient_list(recipe, ingredients):
+        """
+        Метод для создания
+        или обновления списка ингредиентов для рецепта.
+        """
+
         ingredients_list = [
             RecipeIngridient(
                 amount=ingredient["amount"],
@@ -163,10 +168,12 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
     def create(self, validated_data):
         ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
+
         recipe_new = Recipe.objects.create(**validated_data)
+
         recipe_new.tags.set(tags)
 
-        self.get_ingredient_list(recipe_new, ingredients)
+        self.create_ingredient_list(recipe_new, ingredients)
 
         return recipe_new
 
@@ -177,7 +184,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         instance.update(**validated_data)
         instance.tags.set(tags)
 
-        self.get_ingredient_list(instance, ingredients)
+        self.create_ingredient_list(instance, ingredients)
 
         return instance
 
