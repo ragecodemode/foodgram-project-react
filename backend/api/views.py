@@ -112,7 +112,6 @@ class RecipeViewSet(ModelViewSet):
     Поддерживает полный набор действий.
     """
 
-    queryset = Recipe.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly,)
     filterset_class = RecipeFilter()
 
