@@ -1,11 +1,10 @@
 from api.filters import RecipeFilter
 from api.permissions import IsAuthenticatedOrReadOnly
-from django.db.models import Exists, OuterRef, Sum
-from django.http import HttpResponse
+from django.db.models import Sum
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngridient,
                             ShoppingCart, Tag)
 from users.models import Follow
@@ -112,7 +111,7 @@ class RecipeViewSet(ModelViewSet):
     ViewSet модели Recipe.
     Поддерживает полный набор действий.
     """
-
+    queryset = Recipe.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly,)
     filterset_class = RecipeFilter()
 
@@ -120,30 +119,6 @@ class RecipeViewSet(ModelViewSet):
         if self.request.user.is_staff:
             return RecipeListCreateSerializer
         return RecipeRetrieveUpdate
-
-    def get_queryset(self):
-        user = self.request.user
-        if isinstance(user, AnonymousUser):
-            user = None
-        return (
-            Recipe.objects.select_related("author")
-            .prefetch_related(
-                "tags",
-                "ingredient",
-            )
-            .annotate(
-                is_in_shopping_cart=Exists(
-                    ShoppingCart.objects.filter(
-                        user=self.request.user, recipe=OuterRef("pk")
-                    )
-                ),
-                is_favorited=Exists(
-                    Favorite.objects.filter(
-                        user=self.request.user, recipe=OuterRef("pk")
-                    )
-                ),
-            )
-        )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -199,7 +174,7 @@ class RecipeViewSet(ModelViewSet):
     @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
     def download_ingredients(self, request):
         shopping_cart = self.create_ingredients_file()
-        response = HttpResponse(shopping_cart, content_type="text/plain")
+        response = FileResponse(shopping_cart, content_type="text/plain")
         response["Content-Disposition"] = (
             'attachment; filename="ingredients.txt"'
         )
