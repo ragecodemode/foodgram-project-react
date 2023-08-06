@@ -14,6 +14,10 @@ router_v1.register(r'recipes', RecipeViewSet, basename='recipes')
 
 urlpatterns = [
     path('', include(router_v1.urls)),
+    path(
+        "api/recipes/download_shopping_cart/",
+        RecipeViewSet.download_ingredients
+    ),
     path('', include('djoser.urls')),
     path('auth/', include('djoser.urls.authtoken')),
 ]
