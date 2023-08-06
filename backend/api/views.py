@@ -128,7 +128,7 @@ class RecipeViewSet(ModelViewSet):
             Recipe.objects.select_related("author")
             .prefetch_related(
                 "tags",
-                "ingredients",
+                "ingredient",
             )
             .annotate(
                 is_in_shopping_cart=Exists(
