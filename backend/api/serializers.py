@@ -140,7 +140,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
     Сериализатор модели Recipe.
     Создание и изменения рецепта.
     """
-    ingredients = RecipeIngridientSerializer(many=True)
+    ingredient = RecipeIngridientSerializer(many=True)
     author = UserSerializer()
     image = Base64ImageField()
 
@@ -166,7 +166,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         RecipeIngridient.objects.bulk_create(ingredients_list)
 
     def create(self, validated_data):
-        ingredients = validated_data.pop("ingredients")
+        ingredients = validated_data.pop("ingredient")
         tags = validated_data.pop("tags")
 
         recipe_new = Recipe.objects.create(**validated_data)
@@ -178,7 +178,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         return recipe_new
 
     def update(self, instance, validated_data):
-        ingredients = validated_data.pop("ingredients")
+        ingredients = validated_data.pop("ingredient")
         tags = validated_data.pop("tags")
 
         instance.update(**validated_data)
