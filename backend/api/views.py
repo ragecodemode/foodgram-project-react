@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngridient,
                             ShoppingCart, Tag)
 from users.models import Follow
@@ -122,7 +123,7 @@ class RecipeViewSet(ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if not user.is_authenticated:
+        if isinstance(user, AnonymousUser):
             user = None
         return (
             Recipe.objects.select_related("author")
