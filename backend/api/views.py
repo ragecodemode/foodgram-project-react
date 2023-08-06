@@ -11,6 +11,7 @@ from users.models import Follow
 
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ParseError
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -91,6 +92,35 @@ class UserViewSet(UserViewSet):
         user.set_password(serializer.data.get("new_password"))
         user.save()
         return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+
+    @action(('post',), detail=False, permission_classes=(IsAuthenticated,))
+    def post_follow(self, request, id):
+        following_user = get_object_or_404(User, id=id)
+        if User.objects.filter(
+                user=request.user, following_user=following_user
+                ):
+            raise ParseError(
+                'Вы уже подписаны, подписываться на самого себя нельзя!'
+            )
+        else:
+            Follow.objects.create(
+                follower=request.user, following=following_user
+            )
+        serializer = SubscriptionsSerializer(following_user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(('delete',), detail=False, permission_classes=(IsAuthenticated,))
+    def delete_follow(self, request, id):
+        following_user = get_object_or_404(User, id=id)
+        follow = Follow.objects.filter(
+            follower=request.user, following_user=following_user
+        )
+        if not follow:
+            raise ParseError(
+                'Вы не подписаны на этого пользователя!'
+            )
+        follow.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
