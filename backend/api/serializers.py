@@ -77,6 +77,7 @@ class RecipeIngridientSerializer(serializers.ModelSerializer):
     Сериализатор модели RecipeIngridient.
     Запись о количестве ингредиента.
     """
+    recipe = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all())
 
     class Meta:
         model = RecipeIngridient
