@@ -169,20 +169,19 @@ class RecipeViewSet(ModelViewSet):
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(("post",), detail=False, permission_classes=(IsAuthenticated))
+    @action(("post",), detail=True, permission_classes=(IsAuthenticated))
     def post_favorite(self, request, id):
         recipe = get_object_or_404(Recipe, id=id)
         Favorite.objects.create(recipe=recipe, user=request.user)
         serializer = RecipeShortSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(("delete",), detail=False, permission_classes=(IsAuthenticated))
-    def delete_favorite(self, request):
-        get_object_or_404(
-            Favorite, user=request.user, recipe=get_object_or_404(
-                Recipe, id=id
-            )
-        ).delete()
+    @action(("delete",), detail=True, permission_classes=(IsAuthenticated))
+    def delete_favorite(self, request, id):
+        favorite = get_object_or_404(
+              Favorite, user=request.user, recipe_id=id
+          )
+        favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
