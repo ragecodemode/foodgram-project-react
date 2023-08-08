@@ -170,12 +170,9 @@ class RecipeViewSet(ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=["post"], permission_classes=(IsAuthenticated))
-    def post_favorite(self, request, id):
-        recipe = get_object_or_404(Recipe, id=id)
-        try:
-            Favorite.objects.create(recipe=recipe, user=request.user)
-        except IntegrityError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+    def post_favorite(self, request, pk=None):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        Favorite.objects.get_or_create(recipe=recipe, user=request.user)
         serializer = RecipeShortSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -205,7 +202,7 @@ class RecipeViewSet(ModelViewSet):
             )
         return shopping_cart
 
-    @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
+    @action(detail=True, methods=["get"], permission_classes=(IsAuthenticated,))
     def download_ingredients(self, request):
         shopping_cart = self.create_ingredients_file()
         response = FileResponse(shopping_cart, content_type="text/plain")
