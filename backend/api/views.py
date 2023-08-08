@@ -2,7 +2,7 @@ from api.filters import RecipeFilter
 from api.permissions import IsAuthenticatedOrReadOnly
 
 from django.db.models import Sum
-from django.db.utils import IntegrityError
+from django.db import IntegrityError
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
@@ -169,22 +169,28 @@ class RecipeViewSet(ModelViewSet):
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=["post"], permission_classes=(IsAuthenticated))
-    def post_favorite(self, request, pk=None):
-        recipe = get_object_or_404(Recipe, pk=pk)
-        Favorite.objects.get_or_create(recipe=recipe, user=request.user)
+    def post_favorite(self, request, recipe):
+        try:
+            Favorite.objects.create(recipe=recipe, user=request.user)
+        except IntegrityError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         serializer = RecipeShortSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=["delete"], permission_classes=(IsAuthenticated))
-    def delete_favorite(self, request, id):
-        recipe = get_object_or_404(Recipe, id=id)
+    def delete_favorite(self, request, recipe):
         try:
-            favorite = Favorite.objects.get(recipe=recipe, user=request.user)
+            favorite = Favorite.objects.get(recipe=recipe, user=request.user).exists()
         except ObjectDoesNotExist:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=("post", "delete",), permission_classes=(IsAuthenticated))
+    def favorite(self, request, pk=None):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        if request.method == "GET":
+            return self.post_favorite(request, recipe)
+        return self.delete_favorite(request, recipe)
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
     def create_ingredients_file():

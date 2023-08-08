@@ -252,6 +252,17 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
             )
         return data
 
+    def to_representation(self, instance):
+        """
+        Метод используется для преобразования
+        сериализованных данных обратно в словарь.
+        """
+
+        return RecipeShortSerializer(
+            instance.recipe,
+            context={'request': self.context.get('request')}
+        ).data
+
 
 class SubscriptionsSerializer(serializers.ModelSerializer):
     """
