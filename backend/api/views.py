@@ -169,7 +169,7 @@ class RecipeViewSet(ModelViewSet):
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(("post",), detail=True, permission_classes=(IsAuthenticated))
+    @action(detail=True, methods=["post"], permission_classes=(IsAuthenticated))
     def post_favorite(self, request, id):
         recipe = get_object_or_404(Recipe, id=id)
         try:
@@ -179,7 +179,7 @@ class RecipeViewSet(ModelViewSet):
         serializer = RecipeShortSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(("delete",), detail=True, permission_classes=(IsAuthenticated))
+    @action(detail=True, methods=["delete"], permission_classes=(IsAuthenticated))
     def delete_favorite(self, request, id):
         recipe = get_object_or_404(Recipe, id=id)
         try:
