@@ -1,10 +1,13 @@
 from api.filters import RecipeFilter
 from api.permissions import IsAuthenticatedOrReadOnly
+
 from django.db.models import Sum
+from django.db.utils import IntegrityError
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngridient,
                             ShoppingCart, Tag)
 from users.models import Follow
@@ -169,17 +172,20 @@ class RecipeViewSet(ModelViewSet):
     @action(("post",), detail=True, permission_classes=(IsAuthenticated))
     def post_favorite(self, request, id):
         recipe = get_object_or_404(Recipe, id=id)
-        if not Favorite.objects.filter(user=request.user, recipe_id=recipe).exists():
+        try:
             Favorite.objects.create(recipe=recipe, user=request.user)
-            serializer = RecipeShortSerializer(recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        serializer = RecipeShortSerializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(("delete",), detail=True, permission_classes=(IsAuthenticated))
     def delete_favorite(self, request, id):
-        favorite = get_object_or_404(
-              Favorite, user=request.user, recipe_id=id
-          )
+        recipe = get_object_or_404(Recipe, id=id)
+        try:
+            favorite = Favorite.objects.get(recipe=recipe, user=request.user)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
