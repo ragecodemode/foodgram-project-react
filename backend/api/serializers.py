@@ -207,6 +207,11 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = ("user", "recipe")
 
     def validate_favorite(self, data):
+        """
+        Метод  проверяет,
+        находится ли рецепт уже в избранном у пользователя.
+        """
+
         user = data["user"]
         recipe = data["recipe"]
         if user.favorites.filter(recipe).exists():
@@ -214,6 +219,11 @@ class FavoriteSerializer(serializers.ModelSerializer):
         return data
 
     def to_representation(self, instance):
+        """
+        Метод используется для преобразования
+        сериализованных данных обратно в словарь.
+        """
+
         return RecipeShortSerializer(
             instance.recipe,
             context={'request': self.context.get('request')}

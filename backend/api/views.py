@@ -129,11 +129,8 @@ class UserViewSet(UserViewSet):
         Получения списка пользователей,
         на которых подписан пользователь.
         """
-        subscriptions = Follow.objects.filter(
-            follower=request.user,
-        ).select_related("following")
-        serializer = SubscriptionsSerializer(subscriptions, many=True)
-        return Response(serializer.data)
+        subscriptions = self.list(request).filter(follower=self.request.user)
+        return Response(subscriptions)
 
 
 class RecipeViewSet(ModelViewSet):
@@ -172,9 +169,11 @@ class RecipeViewSet(ModelViewSet):
     @action(("post",), detail=True, permission_classes=(IsAuthenticated))
     def post_favorite(self, request, id):
         recipe = get_object_or_404(Recipe, id=id)
-        Favorite.objects.create(recipe=recipe, user=request.user)
-        serializer = RecipeShortSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if not Favorite.objects.filter(user=request.user, recipe_id=recipe).exists():
+            Favorite.objects.create(recipe=recipe, user=request.user)
+            serializer = RecipeShortSerializer(recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(("delete",), detail=True, permission_classes=(IsAuthenticated))
     def delete_favorite(self, request, id):
