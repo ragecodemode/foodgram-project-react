@@ -169,9 +169,7 @@ class RecipeViewSet(ModelViewSet):
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=("post",), permission_classes=(IsAuthenticated,))
-    def post_favorite(self, request, recipe, pk=None):
-        recipe = get_object_or_404(Recipe, pk=pk)
+    def post_favorite(self, request, recipe):
         try:
             Favorite.objects.create(recipe=recipe, user=request.user)
         except IntegrityError:
@@ -179,9 +177,7 @@ class RecipeViewSet(ModelViewSet):
         serializer = RecipeShortSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=("delete",), permission_classes=(IsAuthenticated,))
-    def delete_favorite(self, request, recipe, pk=None):
-        recipe = get_object_or_404(Recipe, pk=pk)
+    def delete_favorite(self, request, recipe):
         try:
             favorite = Favorite.objects.get(recipe=recipe, user=request.user).exists()
         except ObjectDoesNotExist:
@@ -189,12 +185,12 @@ class RecipeViewSet(ModelViewSet):
         favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    # @action(detail=True, methods=("post", "delete",), permission_classes=(IsAuthenticated,))
-    # def favorite(self, request, pk=None):
-    #     recipe = get_object_or_404(Recipe, pk=pk)
-    #     if request.method == "GET":
-    #         return self.post_favorite(request, recipe)
-    #     return self.delete_favorite(request, recipe)
+    @action(detail=True, methods=("post", "delete",), permission_classes=(IsAuthenticated,))
+    def favorite(self, request, pk=None):
+        recipe = get_object_or_404(Recipe, pk=pk)
+        if request.method == "GET":
+            return self.post_favorite(request, recipe)
+        return self.delete_favorite(request, recipe)
 
     @action(detail=False, permission_classes=(IsAuthenticated,))
     def create_ingredients_file():
