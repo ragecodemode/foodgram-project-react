@@ -1,5 +1,5 @@
 from api.filters import RecipeFilter
-from api.permissions import IsAuthorOrAdminOrReadOnly
+from api.permissions import IsAuthenticatedOrReadOnly
 
 from django.db.models import Sum
 from django.db import IntegrityError
@@ -142,7 +142,7 @@ class RecipeViewSet(ModelViewSet):
     Поддерживает полный набор действий.
     """
     queryset = Recipe.objects.all()
-    permission_classes = (IsAuthorOrAdminOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     filterset_class = RecipeFilter()
 
     def get_serializer_class(self):
