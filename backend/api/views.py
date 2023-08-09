@@ -1,5 +1,5 @@
 from api.filters import RecipeFilter
-from api.permissions import IsAuthenticatedOrReadOnly
+# from api.permissions import IsAuthenticatedOrReadOnly
 
 from django.db.models import Sum
 from django.db import IntegrityError
@@ -96,8 +96,7 @@ class UserViewSet(UserViewSet):
         user.save()
         return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
 
-    @action(('post',), detail=False, permission_classes=(IsAuthenticated,))
-    def post_follow(self, request, id):
+    def create_subscribe(self, request, id):
         following_user = get_object_or_404(User, id=id)
         if User.objects.filter(
                 user=request.user, following_user=following_user
@@ -112,8 +111,7 @@ class UserViewSet(UserViewSet):
         serializer = SubscriptionsSerializer(following_user)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(('delete',), detail=False, permission_classes=(IsAuthenticated,))
-    def delete_follow(self, request, id):
+    def delete_subscribe(self, request, id):
         following_user = get_object_or_404(User, id=id)
         follow = Follow.objects.filter(
             follower=request.user, following_user=following_user
@@ -125,7 +123,7 @@ class UserViewSet(UserViewSet):
         follow.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
+    @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
         """
         Запрос к эндпоинту /subscriptions/.
@@ -142,7 +140,7 @@ class RecipeViewSet(ModelViewSet):
     Поддерживает полный набор действий.
     """
     queryset = Recipe.objects.all()
-    permission_classes = (IsAuthenticatedOrReadOnly,)
+    # permission_classes = (IsAuthenticatedOrReadOnly,)
     filterset_class = RecipeFilter()
 
     def get_serializer_class(self):
@@ -153,14 +151,22 @@ class RecipeViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(("post",), detail=False, permission_classes=(IsAuthenticated))
+    def get_permissions(self):
+        if self.action in ("list", "retrieve"):
+            return []
+        if self.action == "destroy":
+            return []
+        else:
+            return super().get_permissions()
+
+    @action(("post",), detail=False, permission_classes=(IsAuthenticated,))
     def post_shopping_cart(self, request, id):
         recipe = get_object_or_404(Recipe, id=id)
         ShoppingCart.objects.create(recipe=recipe, user=request.user)
         serializer = ShoppingCartSerializer(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(("delete",), detail=False, permission_classes=(IsAuthenticated))
+    @action(("delete",), detail=False, permission_classes=(IsAuthenticated,))
     def delete_shopping_cart(self, request):
         get_object_or_404(
             ShoppingCart, user=request.user.id, recipe=get_object_or_404(
@@ -192,7 +198,6 @@ class RecipeViewSet(ModelViewSet):
             return self.post_favorite(request, recipe)
         return self.delete_favorite(request, recipe)
 
-    @action(detail=False, permission_classes=(IsAuthenticated,))
     def create_ingredients_file():
         ingredients = (
             RecipeIngridient.objects.all()
@@ -208,10 +213,14 @@ class RecipeViewSet(ModelViewSet):
             )
         return shopping_cart
 
-    @action(detail=True, methods=["get"], permission_classes=(IsAuthenticated,))
-    def download_ingredients(self, request):
-        shopping_cart = self.create_ingredients_file()
-        response = FileResponse(shopping_cart, content_type="text/plain")
+    @action(detail=True)
+    def download_shopping_cart(self, request):
+        try:
+            ingredients = self.create_ingredients_file(request)
+        except ObjectDoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        content = self.generate_ingredients_content(ingredients)
+        response = FileResponse(content, content_type="text/plain")
         response["Content-Disposition"] = (
             'attachment; filename="ingredients.txt"'
         )
