@@ -1,6 +1,3 @@
-from api.filters import RecipeFilter
-# from api.permissions import IsAuthenticatedOrReadOnly
-
 from django.db.models import Sum
 from django.db import IntegrityError
 from django.http import FileResponse
@@ -25,7 +22,8 @@ from .serializers import (SubscriptionsSerializer, IngredientSerializer,
                           RecipeRetrieveUpdate, RecipeShortSerializer,
                           ShoppingCartSerializer, TagSerializer,
                           UserCreateSerializer, UserSerializer)
-
+from .filters import RecipeFilter
+# from api.permissions import IsAuthenticatedOrReadOnly
 User = get_user_model()
 
 
@@ -194,6 +192,7 @@ class RecipeViewSet(ModelViewSet):
     @action(detail=True, methods=("post", "delete",), permission_classes=(IsAuthenticated,))
     def favorite(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
+        print(recipe)
         if request.method == "GET":
             return self.post_favorite(request, recipe)
         return self.delete_favorite(request, recipe)
