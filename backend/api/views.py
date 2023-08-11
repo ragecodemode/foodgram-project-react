@@ -23,7 +23,7 @@ from .serializers import (SubscriptionsSerializer, IngredientSerializer,
                           ShoppingCartSerializer, TagSerializer,
                           UserCreateSerializer, UserSerializer)
 from .filters import RecipeFilter
-# from api.permissions import IsAuthenticatedOrReadOnly
+from api.permissions import IsAuthenticatedOrReadOnly
 User = get_user_model()
 
 
@@ -121,7 +121,7 @@ class UserViewSet(UserViewSet):
         follow.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, permission_classes=(IsAuthenticated,))
+    @action(detail=False, permission_classes=(IsAuthenticated,), url_path=r"subscriptions")
     def subscriptions(self, request):
         """
         Запрос к эндпоинту /subscriptions/.
@@ -138,7 +138,7 @@ class RecipeViewSet(ModelViewSet):
     Поддерживает полный набор действий.
     """
     queryset = Recipe.objects.all()
-    # permission_classes = (IsAuthenticatedOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly,)
     filterset_class = RecipeFilter()
 
     def get_serializer_class(self):
@@ -148,14 +148,6 @@ class RecipeViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
-    def get_permissions(self):
-        if self.action in ("list", "retrieve"):
-            return []
-        if self.action == "destroy":
-            return []
-        else:
-            return super().get_permissions()
 
     @action(("post",), detail=False, permission_classes=(IsAuthenticated,))
     def post_shopping_cart(self, request, id):
@@ -189,7 +181,7 @@ class RecipeViewSet(ModelViewSet):
         favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=("post", "delete",), permission_classes=(IsAuthenticated,))
+    @action(detail=True, methods=("post", "delete",), permission_classes=(IsAuthenticated,), url_path=r"favorite")
     def favorite(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
         print(recipe)
