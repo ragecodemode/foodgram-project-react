@@ -165,29 +165,37 @@ class RecipeViewSet(ModelViewSet):
         ).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def post_favorite(self, request, recipe):
-        try:
-            Favorite.objects.create(recipe=recipe, user=request.user)
-        except IntegrityError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        serializer = RecipeShortSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    # def post_favorite(self, request, recipe):
+    #     try:
+    #         Favorite.objects.create(recipe=recipe, user=request.user)
+    #     except IntegrityError:
+    #         return Response(status=status.HTTP_400_BAD_REQUEST)
+    #     serializer = RecipeShortSerializer(recipe)
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def delete_favorite(self, request, recipe):
-        try:
-            favorite = Favorite.objects.get(recipe=recipe, user=request.user).exists()
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        favorite.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    # def delete_favorite(self, request, recipe):
+    #     try:
+    #         favorite = Favorite.objects.get(recipe=recipe, user=request.user).exists()
+    #     except ObjectDoesNotExist:
+    #         return Response(status=status.HTTP_400_BAD_REQUEST)
+    #     favorite.delete()
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=("post", "delete",), permission_classes=(IsAuthenticated,), url_path=r"favorite")
     def favorite(self, request, pk=None):
         recipe = get_object_or_404(Recipe, pk=pk)
-        print(recipe)
-        if request.method == "GET":
-            return self.post_favorite(request, recipe)
-        return self.delete_favorite(request, recipe)
+        if request.method == "POST":
+            if Favorite.objects.filter(recipe=recipe, user=request.user).exists():
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            favorite_add = Favorite.objects.create(recipe=recipe)
+            serializer = RecipeShortSerializer(favorite_add)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        favorite_remove = Favorite.objects.get(recipe=recipe, user=request.user)
+        if request.method == "DELETE":
+            if favorite_remove:
+                favorite_remove.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def create_ingredients_file():
         ingredients = (
