@@ -125,7 +125,7 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "tags",
-            "ingredients",
+            "ingredient",
             "author",
             "is_favorited",
             "is_in_shopping_cart",
