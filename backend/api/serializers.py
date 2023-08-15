@@ -272,6 +272,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     Вывод подписок пользователя.
     """
     follower = serializers.ReadOnlyField(source='user')
+    following = serializers.ReadOnlyField(source='user')
 
     class Meta:
         model = Follow
