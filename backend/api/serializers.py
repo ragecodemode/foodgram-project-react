@@ -4,6 +4,8 @@ from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import (LIMITATION, Favorite, Ingredient, Recipe,
                             RecipeIngridient, ShoppingCart, Tag)
+from users.models import Follow
+
 from rest_framework import serializers
 
 User = get_user_model()
@@ -270,19 +272,12 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     Вывод подписок пользователя.
     """
 
-    is_subscribed = serializers.BooleanField(default=True)
-    recipe = RecipeShortSerializer(many=True)
-
     class Meta:
-        model = User
-        feilds = (
-            "email",
+        model = Follow
+        fields = (
             "id",
-            "username",
-            "first_name",
-            "last_name",
-            "recipe",
-            "is_subscribed",
+            "follower",
+            "following"
         )
 
 
