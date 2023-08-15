@@ -139,23 +139,10 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 6,
 }
 
-# DJOSER = {
-#     "LOGIN_FIELD": "email",
-# }
 DJOSER = {
-    'SERIALIZERS': {
-        'user_create': 'api.serializers.RecipeListCreateSerializer',
-        'user': 'api.serializers.UserSerializer',
-        'current_user': 'api.serializers.UserSerializer',
-    },
-
-    'PERMISSIONS': {
-        'user': ['djoser.permissions.CurrentUserOrAdminOrReadOnly'],
-        'user_list': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
-    },
-
-    'HIDE_USERS': False,
+    "LOGIN_FIELD": "email",
 }
+
 MIN_VALUE_COOKING_TIME = 1
 VALUE_AMOUNT = 1
 LIMITATION = 200
