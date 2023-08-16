@@ -36,6 +36,7 @@ class TagViewSet(ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
+    pagination_class = None
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
@@ -49,6 +50,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     permission_classes = (AllowAny,)
     filter_backends = (SearchFilter,)
     search_fields = ("name",)
+    pagination_class = None
 
 
 class UserViewSet(UserViewSet):
@@ -60,6 +62,7 @@ class UserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer()
     permission_classes = (AllowAny,)
+    pagination_class = PageNumberPagination
 
     def get_serializer_class(self):
         if self.action == "create":
