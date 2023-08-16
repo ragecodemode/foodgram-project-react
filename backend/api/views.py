@@ -5,12 +5,14 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from django_filters.rest_framework import DjangoFilterBackend
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngridient,
                             ShoppingCart, Tag)
 from users.models import Follow
 
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -138,6 +140,8 @@ class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly,)
     filterset_class = RecipeFilter()
+    pagination_class = PageNumberPagination
+    filter_backends = (DjangoFilterBackend,)
 
     def get_serializer_class(self):
         if self.request.user.is_staff:
@@ -145,7 +149,20 @@ class RecipeViewSet(ModelViewSet):
         return RecipeRetrieveUpdate
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(author=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        serializer = RecipeListCreateSerializer(
+            instance=serializer.instance,
+            context={'request': self.request}
+        )
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     @action(detail=True, methods=("post", "delete",), permission_classes=(IsAuthenticated,), url_path=r"shopping_cart")
     def shopping_cart(self, request, pk=None):
