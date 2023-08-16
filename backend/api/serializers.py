@@ -167,7 +167,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         ingredients_list = [
             RecipeIngridient(
                 amount=ingredients["amount"],
-                ingredient=Ingredient.objects.get(id=ingredients["id"]),
+                ingredient=Ingredient.objects.get(id=int(ingredients["id"])),
                 recipe=recipe,
             )
             for ingredient in ingredients
