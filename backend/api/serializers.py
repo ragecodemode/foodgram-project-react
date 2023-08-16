@@ -168,7 +168,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         for ingredient_data in ingredients:
             ingredient_list.append(
                 RecipeIngridient(
-                    ingredient=ingredient_data['ingredients'],
+                    ingredient=ingredient_data['ingredient'],
                     amount=ingredient_data['quantity'],
                     recipe=recipe,
                 )
