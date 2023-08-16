@@ -167,7 +167,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         RecipeIngridient.objects.bulk_create(
             RecipeIngridient(
                 recipe=recipe,
-                ingredients=ingredient.get('ingredients'),
+                ingredient=ingredient.get('ingredients'),
                 quantity=ingredient.get('quantity')
             ) for ingredient in ingredients)
 
@@ -184,15 +184,10 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         return recipe_new
 
     def update(self, instance, validated_data):
-        ingredients = validated_data.pop("ingredients")
-        tags = validated_data.pop("tags")
-
-        instance.update(**validated_data)
-        instance.tags.set(tags)
-
-        self.create_ingredient_list(instance, ingredients)
-
-        return instance
+        instance.ingredients.clear()
+        instance.tags.clear()
+        instance = self.add_ingredients_and_tags(instance, validated_data)
+        return super().update(instance, validated_data)
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
