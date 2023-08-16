@@ -186,7 +186,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.ingredients.clear()
         instance.tags.clear()
-        instance = self.add_ingredients_and_tags(instance, validated_data)
+        instance = self.create_ingredient_list(instance, validated_data)
         return super().update(instance, validated_data)
 
 
