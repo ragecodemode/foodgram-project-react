@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.transaction import atomic
 from django.contrib.auth.password_validation import validate_password
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
@@ -143,6 +144,24 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
         ingredients = RecipeIngridient.objects.filter(recipe=obj)
         return IngredientSerializer(ingredients, many=True).data
 
+    def get_is_favorited(self, obj):
+        """
+        Проверка - находится ли рецепт в избранном.
+        """
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
+        return obj.favorites.filter(user=request.user).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        """
+        Проверка - находится ли рецепт в списке  покупок.
+        """
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
+        return obj.shopping_list.filter(user=request.user).exists()
+
 
 class RecipeRetrieveUpdate(serializers.ModelSerializer):
     """
@@ -165,16 +184,17 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         """
 
         ingredient_list = []
-        for ingredient_data in ingredients:
+        for ingredient, quantity in ingredients.values():
             ingredient_list.append(
                 RecipeIngridient(
-                    ingredient=ingredient_data.get('ingredients'),
-                    amount=ingredient_data['quantity'],
+                    ingredient=ingredients,
+                    quantity=quantity,
                     recipe=recipe,
                 )
             )
         RecipeIngridient.objects.bulk_create(ingredient_list)
 
+    @atomic
     def create(self, validated_data):
         request = self.context.get('request', None)
         tags = validated_data.pop('tags')
@@ -184,6 +204,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         self.create_ingredient_list(recipe, ingredients)
         return recipe
 
+    @atomic
     def update(self, instance, validated_data):
         instance.ingredients.clear()
         instance.tags.clear()
