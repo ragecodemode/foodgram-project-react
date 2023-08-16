@@ -116,7 +116,7 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
 
     tags = TagSerializer()
     ingredients = RecipeIngridientSerializer(many=True)
-    author = UserSerializer()
+    author = UserSerializer(read_only=True)
     is_favorited = serializers.BooleanField()
     is_in_shopping_cart = serializers.BooleanField()
 
@@ -141,7 +141,7 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
         Метод для получения списка ингредиентов, связанных с рецептом.
         """
         ingredients = RecipeIngridient.objects.filter(recipe=obj)
-        return IngredientSerializer(ingredients).data
+        return IngredientSerializer(ingredients, many=True).data
 
 
 class RecipeRetrieveUpdate(serializers.ModelSerializer):
@@ -150,18 +150,12 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
     Создание и изменения рецепта.
     """
     ingredients = RecipeIngridientSerializer(many=True)
-    author = UserSerializer()
+    author = UserSerializer(read_only=True)
     image = Base64ImageField()
 
     class Meta:
         model = Recipe
         fields = "__all__"
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
-    def perform_update(self, serializer):
-        serializer.save(author=self.request.user)
 
     @staticmethod
     def create_ingredient_list(recipe, ingredients):
@@ -182,7 +176,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
 
     def create(self, validated_data):
         ingredients = validated_data.pop("ingredients")
-        tags = validated_data.pop("tags", [])
+        tags = validated_data.pop("tags")
 
         recipe_new = Recipe.objects.create(**validated_data)
 
@@ -202,6 +196,11 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         self.create_ingredient_list(instance, ingredients)
 
         return instance
+
+    def to_representation(self, instance):
+        return RecipeListCreateSerializer(instance, context={
+            'request': self.context.get('request')
+        }).data
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
