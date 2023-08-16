@@ -114,7 +114,7 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
     Вывод информации о рецептах.
     """
 
-    tags = TagSerializer()
+    tags = TagSerializer(many=True, read_only=True)
     ingredients = RecipeIngridientSerializer(many=True)
     author = UserSerializer(read_only=True)
     is_favorited = serializers.BooleanField()
@@ -168,18 +168,17 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         for ingredient_data in ingredients:
             ingredient_liist.append(
                 RecipeIngridient(
-                    ingredient=ingredient_data.pop('id'),
-                    quantity=ingredient_data.pop('quantity'),
+                    ingredient=ingredient_data.get('ingredients'),
+                    amount=ingredient_data.get('quantity'),
                     recipe=recipe,
                 )
             )
         RecipeIngridient.objects.bulk_create(ingredient_liist)
 
     def create(self, validated_data):
-        request = self.context.get('request', None)
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(author=request.user, **validated_data)
+        recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
         self.create_ingredient_list(recipe, ingredients)
         return recipe
