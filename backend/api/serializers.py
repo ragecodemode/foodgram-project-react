@@ -197,11 +197,6 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
 
         return instance
 
-    def to_representation(self, instance):
-        return RecipeListCreateSerializer(instance, context={
-            'request': self.context.get('request')
-        }).data
-
 
 class FavoriteSerializer(serializers.ModelSerializer):
     """
