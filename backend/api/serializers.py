@@ -115,7 +115,7 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
     """
 
     tags = TagSerializer()
-    ingredient = RecipeIngridientSerializer(many=True)
+    ingredients = RecipeIngridientSerializer(many=True)
     author = UserSerializer()
     is_favorited = serializers.BooleanField()
     is_in_shopping_cart = serializers.BooleanField()
@@ -125,7 +125,7 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "tags",
-            "ingredient",
+            "ingredients",
             "author",
             "is_favorited",
             "is_in_shopping_cart",
@@ -140,8 +140,8 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
         """
         Метод для получения списка ингредиентов, связанных с рецептом.
         """
-        ingredient = RecipeIngridient.objects.filter(recipe=obj)
-        return IngredientSerializer(ingredient).data
+        ingredients = RecipeIngridient.objects.filter(recipe=obj)
+        return IngredientSerializer(ingredients).data
 
 
 class RecipeRetrieveUpdate(serializers.ModelSerializer):
@@ -149,13 +149,19 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
     Сериализатор модели Recipe.
     Создание и изменения рецепта.
     """
-    ingredient = RecipeIngridientSerializer(many=True, required=False)
-    author = UserSerializer(required=False)
+    ingredients = RecipeIngridientSerializer(many=True)
+    author = UserSerializer()
     image = Base64ImageField()
 
     class Meta:
         model = Recipe
         fields = "__all__"
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(author=self.request.user)
 
     @staticmethod
     def create_ingredient_list(recipe, ingredients):
@@ -166,8 +172,8 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
 
         ingredients_list = [
             RecipeIngridient(
-                amount=ingredient["amount"],
-                ingredient=Ingredient.objects.get(id=ingredient["id"]),
+                amount=ingredients["amount"],
+                ingredient=Ingredient.objects.get(id=ingredients["id"]),
                 recipe=recipe,
             )
             for ingredient in ingredients
@@ -175,7 +181,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         RecipeIngridient.objects.bulk_create(ingredients_list)
 
     def create(self, validated_data):
-        ingredients = validated_data.pop("ingredient", [])
+        ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags", [])
 
         recipe_new = Recipe.objects.create(**validated_data)
@@ -187,7 +193,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         return recipe_new
 
     def update(self, instance, validated_data):
-        ingredients = validated_data.pop("ingredient")
+        ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
 
         instance.update(**validated_data)
