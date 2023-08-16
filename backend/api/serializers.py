@@ -164,16 +164,16 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         или обновления списка ингредиентов для рецепта.
         """
 
-        ingredient_liist = []
+        ingredient_list = []
         for ingredient_data in ingredients:
-            ingredient_liist.append(
+            ingredient_list.append(
                 RecipeIngridient(
-                    ingredient=ingredient_data.get('ingredients'),
-                    amount=ingredient_data.get('quantity'),
+                    ingredient=ingredient_data['ingredients'],
+                    amount=ingredient_data['quantity'],
                     recipe=recipe,
                 )
             )
-        RecipeIngridient.objects.bulk_create(ingredient_liist)
+        RecipeIngridient.objects.bulk_create(ingredient_list)
 
     def create(self, validated_data):
         request = self.context.get('request', None)
@@ -181,7 +181,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(author=request.user, **validated_data)
         recipe.tags.set(tags)
-        self.create_ingredients(recipe, ingredients)
+        self.create_ingredient_list(recipe, ingredients)
         return recipe
 
     def update(self, instance, validated_data):
