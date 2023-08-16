@@ -146,22 +146,6 @@ class RecipeViewSet(ModelViewSet):
             return RecipeListCreateSerializer
         return RecipeRetrieveUpdate
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        serializer = RecipeListCreateSerializer(
-            instance=serializer.instance,
-            context={'request': self.request}
-        )
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
-
     @action(detail=True, methods=("post", "delete",), permission_classes=(IsAuthenticated,), url_path=r"shopping_cart")
     def shopping_cart(self, request, pk=None):
         """
