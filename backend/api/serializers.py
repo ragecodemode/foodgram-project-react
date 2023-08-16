@@ -164,15 +164,12 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         или обновления списка ингредиентов для рецепта.
         """
 
-        ingredients_list = [
+        RecipeIngridient.objects.bulk_create(
             RecipeIngridient(
-                amount=ingredients["amount"],
-                ingredient=Ingredient.objects.get(id=int(ingredients["id"])),
                 recipe=recipe,
-            )
-            for ingredient in ingredients
-        ]
-        RecipeIngridient.objects.bulk_create(ingredients_list)
+                ingredient=ingredient.get('ingredients'),
+                amount=ingredient.get('quantity')
+            ) for ingredient in ingredients)
 
     def create(self, validated_data):
         ingredients = validated_data.pop("ingredients")
