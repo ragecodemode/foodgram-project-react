@@ -167,8 +167,8 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         RecipeIngridient.objects.bulk_create(
             RecipeIngridient(
                 recipe=recipe,
-                ingredient=ingredient.get('ingredients'),
-                amount=ingredient.get('quantity')
+                ingredients=ingredient.get('ingredients'),
+                quantity=ingredient.get('quantity')
             ) for ingredient in ingredients)
 
     def create(self, validated_data):
