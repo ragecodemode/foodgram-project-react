@@ -176,26 +176,6 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         model = Recipe
         fields = "__all__"
 
-    # @staticmethod
-    # def create_ingredient_list(recipe, ingredients):
-    #     """
-    #     Метод для создания
-    #     или обновления списка ингредиентов для рецепта.
-    #     """
-
-    #     ingredient_list = []
-    #     for item in ingredients:
-    #         ingredient = item['ingredient']
-    #         quantity = item['quantity']
-    #         ingredient_list.append(
-    #             RecipeIngridient(
-    #                 ingredient=ingredient,
-    #                 quantity=quantity,
-    #                 recipe=recipe,
-    #             )
-    #         )
-    #     RecipeIngridient.objects.bulk_create(ingredient_list)
-
     @atomic
     def create(self, validated_data):
         request = self.context.get('request')
