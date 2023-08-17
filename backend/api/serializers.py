@@ -188,11 +188,9 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
 
         for ingredient in ingredients:
             quantity = ingredient.get('quantity')
-            ingredient_id = int(ingredient['id'])
-            ingredient = Ingredient.objects.get(id=ingredient_id)
             RecipeIngridient.objects.bulk_create(
                 quantity=quantity,
-                ingredient=ingredient,
+                ingredient=ingredient['id'],
                 recipe=recipe
             )
         return recipe
@@ -207,11 +205,11 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
 
         for ingredient in ingredients:
             quantity = ingredient.get('quantity')
-            ingredient_id = int(ingredient['id'])
-            ingredient = Ingredient.objects.get(id=ingredient_id)
+            # ingredient_id = int(ingredient['id'])
+            # ingredient = Ingredient.objects.get(id=ingredient_id)
             RecipeIngridient.objects.bulk_update(
                 recipe=instance,
-                ingredient=ingredient,
+                ingredient=ingredient['id'],
                 quantity=quantity
             )
         return instance
