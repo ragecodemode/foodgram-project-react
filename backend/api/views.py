@@ -194,13 +194,13 @@ class RecipeViewSet(ModelViewSet):
         ingredients = (
             RecipeIngridient.objects.all()
             .values("ingredient__name", "ingredient__measurement_unit")
-            .annotate(amount=Sum("quantity"))
+            .annotate(amount=Sum("amount"))
         )
         shopping_cart = []
         for ingredient in ingredients:
             shopping_cart.append(
                 f'{ingredient["ingredient__name"]}'
-                f'{ingredient["quantity"]} '
+                f'{ingredient["amount"]} '
                 f'{ingredient["ingredient__measurement_unit"]}\n'
             )
         return shopping_cart

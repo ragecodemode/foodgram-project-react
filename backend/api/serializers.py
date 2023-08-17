@@ -90,7 +90,7 @@ class RecipeIngridientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecipeIngridient
-        fields = ('id', 'name', 'measurement_unit', 'quantity')
+        fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
@@ -187,9 +187,8 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
             recipe.tags.add(tag)
 
         for ingredient in ingredients:
-            # quantity = ingredient.get('quantity')
             RecipeIngridient.objects.bulk_create(
-                quantity=ingredient['quantity'],
+                amount=ingredient['amount'],
                 ingredient=ingredient['id'],
                 recipe=recipe
             )
@@ -204,13 +203,13 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         instance.tags.set(tags)
 
         for ingredient in ingredients:
-            quantity = ingredient.get('quantity')
+            amount = ingredient.get('amount')
             # ingredient_id = int(ingredient['id'])
             # ingredient = Ingredient.objects.get(id=ingredient_id)
             RecipeIngridient.objects.bulk_update(
                 recipe=instance,
                 ingredient=ingredient['id'],
-                quantity=quantity
+                amount=amount
             )
         return instance
 
