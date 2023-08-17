@@ -203,11 +203,10 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         instance.tags.set(tags)
 
         for ingredient in ingredients:
-            amount = ingredient.get('amount')
             RecipeIngridient.objects.bulk_update(
                 recipe=instance,
                 ingredient=ingredient['id'],
-                amount=amount
+                amount=ingredient['amount']
             )
         return instance
 
