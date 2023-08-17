@@ -187,9 +187,9 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
             recipe.tags.add(tag)
 
         for ingredient in ingredients:
-            quantity = ingredient.get('quantity')
+            # quantity = ingredient.get('quantity')
             RecipeIngridient.objects.bulk_create(
-                quantity=quantity,
+                quantity=ingredient['quantity'],
                 ingredient=ingredient['id'],
                 recipe=recipe
             )
