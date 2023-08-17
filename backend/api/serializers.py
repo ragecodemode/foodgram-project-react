@@ -176,42 +176,66 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         model = Recipe
         fields = "__all__"
 
-    @staticmethod
-    def create_ingredient_list(recipe, ingredients):
-        """
-        Метод для создания
-        или обновления списка ингредиентов для рецепта.
-        """
+    # @staticmethod
+    # def create_ingredient_list(recipe, ingredients):
+    #     """
+    #     Метод для создания
+    #     или обновления списка ингредиентов для рецепта.
+    #     """
 
-        ingredient_list = []
-        for item in ingredients:
-            ingredient = item['ingredient']
-            quantity = item['quantity']
-            ingredient_list.append(
-                RecipeIngridient(
-                    ingredient=ingredient,
-                    quantity=quantity,
-                    recipe=recipe,
-                )
-            )
-        RecipeIngridient.objects.bulk_create(ingredient_list)
+    #     ingredient_list = []
+    #     for item in ingredients:
+    #         ingredient = item['ingredient']
+    #         quantity = item['quantity']
+    #         ingredient_list.append(
+    #             RecipeIngridient(
+    #                 ingredient=ingredient,
+    #                 quantity=quantity,
+    #                 recipe=recipe,
+    #             )
+    #         )
+    #     RecipeIngridient.objects.bulk_create(ingredient_list)
 
     @atomic
     def create(self, validated_data):
-        request = self.context.get('request', None)
+        request = self.context.get('request')
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(author=request.user, **validated_data)
-        recipe.tags.set(tags)
-        self.create_ingredient_list(recipe, ingredients)
+
+        for tag in tags:
+            recipe.tags.add(tag)
+
+        for ingredient in ingredients:
+            quantity = ingredient['quantity']
+            ingredient = Ingredient.objects.get(id=ingredient[id])
+            RecipeIngridient.objects.bulk_create(
+                quantity=quantity,
+                ingredient=ingredient,
+                recipe=recipe
+            )
+        # recipe.tags.set(tags)
+        # self.create_ingredient_list(recipe, ingredients)
         return recipe
 
     @atomic
     def update(self, instance, validated_data):
-        instance.ingredients.clear()
-        instance.tags.clear()
-        instance = self.create_ingredient_list(instance, validated_data)
-        return super().update(instance, validated_data)
+        ingredients = validated_data.pop("ingredients")
+        tags = validated_data.pop("tags")
+
+        super().update(instance, validated_data)
+        instance.tags.set(tags)
+
+        for ingredient in ingredients:
+            quantity = ingredient['quantity']
+            ingredient = Ingredient.objects.get(id=ingredient[id])
+            RecipeIngridient.objects.bulk_update(
+                recipe=instance,
+                ingredient=ingredient,
+                quantity=quantity
+            )
+        # instance = self.create_ingredient_list(instance, validated_data)
+        return instance
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
