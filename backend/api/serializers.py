@@ -214,8 +214,6 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
                 ingredient=ingredient,
                 recipe=recipe
             )
-        # recipe.tags.set(tags)
-        # self.create_ingredient_list(recipe, ingredients)
         return recipe
 
     @atomic
@@ -234,7 +232,6 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
                 ingredient=ingredient,
                 quantity=quantity
             )
-        # instance = self.create_ingredient_list(instance, validated_data)
         return instance
 
 
