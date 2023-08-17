@@ -204,8 +204,6 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
 
         for ingredient in ingredients:
             amount = ingredient.get('amount')
-            # ingredient_id = int(ingredient['id'])
-            # ingredient = Ingredient.objects.get(id=ingredient_id)
             RecipeIngridient.objects.bulk_update(
                 recipe=instance,
                 ingredient=ingredient['id'],
