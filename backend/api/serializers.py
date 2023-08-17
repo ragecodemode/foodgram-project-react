@@ -188,7 +188,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
 
         for ingredient in ingredients:
             quantity = ingredient.get('quantity')
-            ingredient_id = ingredient.pop('id')
+            ingredient_id = int(ingredient['id'])
             ingredient = Ingredient.objects.get(id=ingredient_id)
             RecipeIngridient.objects.bulk_create(
                 quantity=quantity,
@@ -207,7 +207,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
 
         for ingredient in ingredients:
             quantity = ingredient.get('quantity')
-            ingredient_id = ingredient.pop('id')
+            ingredient_id = int(ingredient['id'])
             ingredient = Ingredient.objects.get(id=ingredient_id)
             RecipeIngridient.objects.bulk_update(
                 recipe=instance,
