@@ -2,8 +2,8 @@ from django_filters import rest_framework as filters
 from recipes.models import Recipe, Ingredient, Tag
 
 
-class IngredientFilter(filters.SearchFilter):
-    search_param = 'name'
+class IngredientFilter(filters.FilterSet):
+    name = filters.CharFilter(lookup_expr='istartswith')
 
     class Meta:
         model = Ingredient
