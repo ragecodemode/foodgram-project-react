@@ -143,6 +143,14 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
         ingredients = RecipeIngridient.objects.filter(recipe=obj)
         return IngredientSerializer(ingredients, many=True).data
 
+    def get_tags(self, obj):
+        """
+        Метод для получения списка тэгов.
+        """
+        tags_query = Tag.objects.filter(id=obj.id)
+        serializer = TagSerializer(tags_query, many=True)
+        return serializer.data
+
     def get_is_favorited(self, obj):
         """
         Проверка - находится ли рецепт в избранном.
@@ -170,6 +178,10 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
     ingredients = RecipeIngridientSerializer(many=True)
     author = UserSerializer(read_only=True)
     image = Base64ImageField()
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Tag.objects.all()
+    )
 
     class Meta:
         model = Recipe
