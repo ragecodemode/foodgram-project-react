@@ -197,17 +197,17 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
 
-        instance.update(**validated_data)
-        instance.tags.set(tags)
+        if tags is not None:
+            instance.tags.set(tags)
 
         for ingredient in ingredients:
             amount = ingredient.get('amount')
-            RecipeIngridient.objects.update(
+            RecipeIngridient.objects.update_or_create(
                 recipe=instance,
                 ingredient=ingredient['id'],
                 amount=amount
             )
-        return instance
+        return super().update(instance, validated_data)
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
