@@ -197,12 +197,12 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
 
-        super().update(instance, validated_data)
+        instance.update(**validated_data)
         instance.tags.set(tags)
 
         for ingredient in ingredients:
             amount = ingredient.get('amount')
-            RecipeIngridient.objects.bulk_update(
+            RecipeIngridient.objects.update(
                 recipe=instance,
                 ingredient=ingredient['id'],
                 amount=amount
