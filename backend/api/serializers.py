@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.db.transaction import atomic
 from django.contrib.auth.password_validation import validate_password
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
@@ -176,7 +175,6 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         model = Recipe
         fields = "__all__"
 
-    @atomic
     def create(self, validated_data):
         request = self.context.get('request')
         tags = validated_data.pop('tags')
@@ -188,14 +186,13 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
 
         for ingredient in ingredients:
             amount = ingredient.get('amount')
-            RecipeIngridient.objects.bulk_create(
+            RecipeIngridient.objects.create(
                 amount=amount,
                 ingredient=ingredient['id'],
                 recipe=recipe
-            ).save()
+            )
         return recipe
 
-    @atomic
     def update(self, instance, validated_data):
         ingredients = validated_data.pop("ingredients")
         tags = validated_data.pop("tags")
