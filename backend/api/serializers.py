@@ -178,10 +178,10 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
 
     @atomic
     def create(self, validated_data):
-        request = self.context.get('request')
+        # request = self.context.get('request')
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(author=request.user, **validated_data)
+        recipe = Recipe.objects.create(**validated_data)
 
         for tag in tags:
             recipe.tags.add(tag)
@@ -192,7 +192,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
                 amount=amount,
                 ingredient=ingredient['id'],
                 recipe=recipe
-            )
+            ).save()
         return recipe
 
     @atomic
