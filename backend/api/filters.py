@@ -1,5 +1,13 @@
 from django_filters import rest_framework as filters
-from recipes.models import Recipe
+from recipes.models import Recipe, Ingredient, Tag
+
+
+class IngredientFilter(filters.SearchFilter):
+    search_param = 'name'
+
+    class Meta:
+        model = Ingredient
+        fields = ('name',)
 
 
 class RecipeFilter(filters.FilterSet):
@@ -14,9 +22,10 @@ class RecipeFilter(filters.FilterSet):
         field_name='is_favorited__in',
         label='В избранных.'
     )
-    tags = filters.AllValuesMultipleFilter(
+    tags = filters.ModelMultipleChoiceFilter(
         field_name='tags__slug',
-        label='Ссылка'
+        to_field_name='slug',
+        queryset=Tag.objects.all(),
     )
 
     class Meta:
