@@ -73,7 +73,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = "__all__"
+        fields = ('id', 'name', 'measurement_unit')
 
 
 class AddIngredientRecipeSerializer(serializers.ModelSerializer):
@@ -240,14 +240,6 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         }).data
 
 
-class ShowFavoriteSerializer(serializers.ModelSerializer):
-    """ Сериализатор для отображения избранного. """
-
-    class Meta:
-        model = Recipe
-        fields = ['id', 'name', 'image', 'cooking_time']
-
-
 class FavoriteSerializer(serializers.ModelSerializer):
     """
     Сериализатор модели Favorite.
@@ -271,7 +263,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
         return data
 
     def to_representation(self, instance):
-        return ShowFavoriteSerializer(
+        return RecipeShortSerializer(
             instance.recipe,
             context={'request': self.context.get('request')}
         ).data
@@ -300,7 +292,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         return data
 
     def to_representation(self, instance):
-        return ShowFavoriteSerializer(
+        return RecipeShortSerializer(
             instance.recipe,
             context={'request': self.context.get('request')}
         ).data
@@ -337,12 +329,14 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
 
     def get_recipe(self, obj):
         request = self.context.get('request')
-        limit = request.GET.get('recipes_limit')
-        recipe = obj.recipe.all()
+        if not request or request.user.is_anonymous:
+            return False
+        recipe = obj.recipe.filter(author=obj)
+        limit = request.query_params.get('recipes_limit')
         if limit:
             recipe = recipe[:int(limit)]
-        serializer = RecipeShortSerializer(recipe, many=True, read_only=True)
-        return serializer.data
+        seriailizer = ShowFavoriteSerializer(recipe, many=True)
+        return seriailizer.data
 
     def get_recipes_count(self, obj):
         return obj.recipe.count()

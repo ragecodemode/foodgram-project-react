@@ -22,7 +22,7 @@ from .serializers import (SubscriptionsSerializer, IngredientSerializer,
                           RecipeRetrieveUpdate, FavoriteSerializer,
                           ShoppingCartSerializer, TagSerializer,
                           UserCreateSerializer, UserSerializer)
-from .filters import RecipeFilter
+from .filters import RecipeFilter, IngredientFilter
 from api.permissions import IsAuthenticatedOrReadOnly
 User = get_user_model()
 
@@ -48,7 +48,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
-    filter_backends = (SearchFilter,)
+    filter_backends = (IngredientFilter,)
     search_fields = ("name",)
     pagination_class = None
 
