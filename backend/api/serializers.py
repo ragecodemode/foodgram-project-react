@@ -76,6 +76,17 @@ class IngredientSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class AddIngredientRecipeSerializer(serializers.ModelSerializer):
+    """ Сериализатор добавления ингредиента в рецепт. """
+
+    id = serializers.IntegerField()
+    amount = serializers.IntegerField()
+
+    class Meta:
+        model = RecipeIngridient
+        fields = ['id', 'amount']
+
+
 class RecipeIngridientSerializer(serializers.ModelSerializer):
     """
     Сериализатор модели RecipeIngridient.
@@ -301,7 +312,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     Вывод списка подписок пользователя.
     """
     is_subscribed = serializers.SerializerMethodField()
-    recipes = serializers.SerializerMethodField()
+    recipe = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -313,7 +324,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'is_subscribed',
-            'recipes',
+            'recipe',
             'recipes_count'
         )
 
@@ -324,17 +335,17 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
         return Follow.objects.filter(
             follower=request.user, following=obj).exists()
 
-    def get_recipes(self, obj):
+    def get_recipe(self, obj):
         request = self.context.get('request')
         limit = request.GET.get('recipes_limit')
-        recipes = obj.recipes.all()
+        recipe = obj.recipe.all()
         if limit:
-            recipes = recipes[:int(limit)]
-        serializer = RecipeShortSerializer(recipes, many=True, read_only=True)
+            recipe = recipe[:int(limit)]
+        serializer = RecipeShortSerializer(recipe, many=True, read_only=True)
         return serializer.data
 
     def get_recipes_count(self, obj):
-        return obj.recipes.count()
+        return obj.recipe.count()
 
 
 class SubscribeListSerializer(serializers.ModelSerializer):
