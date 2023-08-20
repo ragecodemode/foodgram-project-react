@@ -166,6 +166,7 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
         recipe = RecipeIngridient.objects.filter(recipe=obj)
         return RecipeIngridientSerializer(recipe, many=True).data
 
+    def get_ingredients(self, obj):
         ingredients = []
         for ingredient in obj.ingredients.all():
             ingredient_json = {
