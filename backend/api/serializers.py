@@ -185,7 +185,8 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
             ingredient_json = {
                 "id": ingredient.id,
                 "name": ingredient.name,
-                "measurement_unit": ingredient.measurement_unit
+                "measurement_unit": ingredient.measurement_unit,
+                "amount": ingredient.amount
             }
             ingredients.append(ingredient_json)
         return ingredients
