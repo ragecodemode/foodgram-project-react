@@ -11,7 +11,6 @@ from users.models import Follow
 
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -49,7 +48,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
     filter_backends = (SearchFilter,)
-    search_fields = ("name",)
+    search_fields = ("^name",)
     pagination_class = None
 
 
@@ -62,7 +61,6 @@ class UserViewSet(UserViewSet):
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer()
     permission_classes = (AllowAny,)
-    # pagination_class = PageNumberPagination
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -167,7 +165,6 @@ class RecipeViewSet(ModelViewSet):
     """
     queryset = Recipe.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    pagination_class = PageNumberPagination
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):

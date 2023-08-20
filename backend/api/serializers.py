@@ -4,7 +4,9 @@ from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 
 from rest_framework.validators import UniqueTogetherValidator
-from rest_framework.serializers import PrimaryKeyRelatedField, ReadOnlyField, ImageField, IntegerField
+from rest_framework.serializers import (
+    PrimaryKeyRelatedField, ReadOnlyField, ImageField, IntegerField
+)
 from recipes.models import (LIMITATION, Favorite, Ingredient, Recipe,
                             RecipeIngridient, ShoppingCart, Tag)
 from users.models import Follow
@@ -102,6 +104,7 @@ class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
     """
 
     id = PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+    amount = serializers.IntegerField()
 
     class Meta:
         model = RecipeIngridient
@@ -134,7 +137,12 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
     """
 
     tags = TagSerializer(many=True)
-    ingredients = RecipeIngridientSerializer(many=True)
+    ingredients = serializers.SerializerMethodField()
+    # ingredients = PrimaryKeyRelatedField(
+    #     many=True,
+    #     queryset=Ingredient.objects.all()
+    # )
+    # ingredients = RecipeIngridientSerializer(many=True)
     author = UserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField(
         method_name='get_is_favorited'
@@ -160,15 +168,27 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
         )
 
     def get_recipe(self, obj):
-        ingredients = RecipeIngridient.objects.filter(recipe=obj)
-        return RecipeIngridientSerializer(ingredients, many=True).data
+        recipe = RecipeIngridient.objects.filter(recipe=obj)
+        return RecipeIngridientSerializer(recipe, many=True).data
 
+    # def get_ingredients(self, obj):
+    #     recipe_ingredients = RecipeIngridient.objects.filter(recipe=obj).values(
+    #         "ingredient__id",
+    #         "ingredient__name",
+    #         "ingredient__measurement_unit",
+    #         "amount"
+    #     )
+    #     return list(recipe_ingredients)
     def get_ingredients(self, obj):
-        """
-        Метод для получения списка ингредиентов, связанных с рецептом.
-        """
-        ingredients = RecipeIngridient.objects.filter(recipe=obj)
-        return IngredientSerializer(ingredients, many=True).data
+        ingredients = []
+        for ingredient in obj.ingredients.all():
+            ingredient_json = {
+                "id": ingredient.id,
+                "name": ingredient.name,
+                "measurement_unit": ingredient.measurement_unit
+            }
+            ingredients.append(ingredient_json)
+        return ingredients
 
     def get_is_favorited(self, obj):
         """
@@ -198,7 +218,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
     Сериализатор модели Recipe.
     Создание и изменения рецепта.
     """
-    ingredients = RecipeIngridientSerializer(many=True)
+    ingredients = RecipeIngredientWriteSerializer(many=True)
     author = UserSerializer(read_only=True)
     image = Base64ImageField()
     tags = PrimaryKeyRelatedField(
