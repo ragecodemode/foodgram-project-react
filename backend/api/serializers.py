@@ -146,13 +146,22 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
             "pub_date",
         )
 
-    def get_recipe(self, obj):
-        recipe = RecipeIngredient.objects.filter(recipe=obj)
-        return RecipeIngredientSerializer(recipe, many=True).data
-
     def get_ingredients(self, obj):
-        ingredients = RecipeIngredient.objects.filter(recipe=obj)
-        return RecipeIngredientSerializer(ingredients, many=True).data
+        ingredients_data = []
+        recipe_ingredients = RecipeIngredient.objects.filter(recipe=obj).values('ingredient', 'amount', 'measurement_unit')
+        for recipe_ingredient in recipe_ingredients:
+            ingredient_id = recipe_ingredient['ingredient']
+            amount = recipe_ingredient['amount']
+            measurement_unit = recipe_ingredient['measurement_unit']
+            ingredient = Ingredient.objects.get(id=ingredient_id)
+            ingredient_data = {
+                'id': ingredient.id,
+                'name': ingredient.name,
+                'amount': amount,
+                'measurement_unit': measurement_unit
+            }
+            ingredients_data.append(ingredient_data)
+        return ingredients_data
 
     def get_is_favorited(self, obj):
         """
