@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngridient,
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 from users.models import Follow
 
@@ -245,7 +245,7 @@ class RecipeViewSet(ModelViewSet):
 
     def create_ingredients_file(self, request):
         ingredients = (
-            RecipeIngridient.objects.all()
+            RecipeIngredient.objects.all()
             .values("ingredient__name", "ingredient__measurement_unit")
             .annotate(amount=Sum("amount"))
         )

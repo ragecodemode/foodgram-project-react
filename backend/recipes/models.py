@@ -70,7 +70,7 @@ class Recipe(models.Model):
         ordering = ("-pub_date",)
 
 
-class RecipeIngridient(models.Model):
+class RecipeIngredient(models.Model):
     """Моедль, связывающая количество ингридиентов и рецепт."""
 
     recipe = models.ForeignKey(

@@ -8,7 +8,7 @@ from rest_framework.serializers import (
     PrimaryKeyRelatedField, ReadOnlyField, ImageField, IntegerField
 )
 from recipes.models import (LIMITATION, Favorite, Ingredient, Recipe,
-                            RecipeIngridient, ShoppingCart, Tag)
+                            RecipeIngredient, ShoppingCart, Tag)
 from users.models import Follow
 
 from rest_framework import serializers
@@ -76,27 +76,11 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = "__all__"
+        fields = ("id", "name", "measurement_unit")
+        read_only_fields = ("name", "measurement_unit")
 
 
-class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
-    """
-    Вложенный сериализатор для RecipeRetrieveUpdate.
-    Обеспечивает работу с моделью RecipeIngredien.
-    """
-
-    id = PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
-    amount = serializers.IntegerField()
-
-    class Meta:
-        model = RecipeIngridient
-        fields = (
-            "id",
-            "amount",
-        )
-
-
-class RecipeIngridientSerializer(serializers.ModelSerializer):
+class RecipeIngredientSerializer(serializers.Serializer):
     """
     Сериализатор модели RecipeIngridient.
     Запись о количестве ингредиента.
@@ -108,15 +92,10 @@ class RecipeIngridientSerializer(serializers.ModelSerializer):
     measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit'
     )
-    # ingredients = RecipeIngredientWriteSerializer()
 
     class Meta:
-        model = RecipeIngridient
+        model = RecipeIngredient
         fields = ('id', 'name', 'measurement_unit', 'amount')
-
-    def get_ingredients(self, obj):
-        ingredients = RecipeIngridient.objects.filter(recipe=obj)
-        return RecipeIngridientSerializer(ingredients, many=True).data
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
@@ -142,7 +121,7 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
     """
 
     tags = TagSerializer(many=True)
-    ingredients = RecipeIngridientSerializer(many=True)
+    ingredients = RecipeIngredientSerializer(many=True)
     author = UserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField(
         method_name='get_is_favorited'
@@ -168,8 +147,12 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
         )
 
     def get_recipe(self, obj):
-        recipe = RecipeIngridient.objects.filter(recipe=obj)
-        return RecipeIngridientSerializer(recipe, many=True).data
+        recipe = RecipeIngredient.objects.filter(recipe=obj)
+        return RecipeIngredientSerializer(recipe, many=True).data
+
+    def get_ingredients(self, obj):
+        ingredients = RecipeIngredient.objects.filter(recipe=obj)
+        return RecipeIngredientSerializer(ingredients, many=True).data
 
     def get_is_favorited(self, obj):
         """
@@ -199,7 +182,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
     Сериализатор модели Recipe.
     Создание и изменения рецепта.
     """
-    ingredients = RecipeIngridientSerializer(many=True)
+    ingredients = RecipeIngredientSerializer(many=True)
     author = UserSerializer(read_only=True)
     image = Base64ImageField()
     tags = PrimaryKeyRelatedField(
@@ -222,7 +205,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
 
         for ingredient in ingredients:
             amount = ingredient.get('amount')
-            RecipeIngridient.objects.create(
+            RecipeIngredient.objects.create(
                 amount=amount,
                 ingredient=ingredient['id'],
                 recipe=recipe
@@ -238,7 +221,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
 
         for ingredient in ingredients:
             amount = ingredient.get('amount')
-            RecipeIngridient.objects.update_or_create(
+            RecipeIngredient.objects.update_or_create(
                 recipe=instance,
                 ingredient=ingredient['id'],
                 amount=amount
@@ -267,17 +250,17 @@ class FavoriteSerializer(serializers.ModelSerializer):
             "id", "name", "image", "cooking_time",
         )
 
-    def validate_favorite(self, data):
-        """
-        Метод  проверяет,
-        находится ли рецепт уже в избранном у пользователя.
-        """
+    # def validate_favorite(self, data):
+    #     """
+    #     Метод  проверяет,
+    #     находится ли рецепт уже в избранном у пользователя.
+    #     """
 
-        user = data["user"]
-        recipe = data["recipe"]
-        if user.favorites.filter(recipe).exists():
-            raise serializers.ValidationError("Рецепт уже в избранном.")
-        return data
+    #     user = data["user"]
+    #     recipe = data["recipe"]
+    #     if user.favorites.filter(recipe).exists():
+    #         raise serializers.ValidationError("Рецепт уже в избранном.")
+    #     return data
 
     def to_representation(self, instance):
         return RecipeShortSerializer(
@@ -306,14 +289,14 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
             "cooking_time",
         )
 
-    def validate(self, data):
-        user = data["user"]
-        recipe = data["recipe"]
-        if user.shopping_cart.filter(recipe).exists():
-            raise serializers.ValidateErrore(
-                "Рецепт уже есть в списке покупок."
-            )
-        return data
+    # def validate(self, data):
+    #     user = data["user"]
+    #     recipe = data["recipe"]
+    #     if user.shopping_cart.filter(recipe).exists():
+    #         raise serializers.ValidateErrore(
+    #             "Рецепт уже есть в списке покупок."
+    #         )
+    #     return data
 
     def to_representation(self, instance):
         return RecipeShortSerializer(
