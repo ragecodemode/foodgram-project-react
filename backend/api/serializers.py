@@ -138,11 +138,6 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
 
     tags = TagSerializer(many=True)
     ingredients = serializers.SerializerMethodField()
-    # ingredients = PrimaryKeyRelatedField(
-    #     many=True,
-    #     queryset=Ingredient.objects.all()
-    # )
-    # ingredients = RecipeIngridientSerializer(many=True)
     author = UserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField(
         method_name='get_is_favorited'
@@ -171,15 +166,6 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
         recipe = RecipeIngridient.objects.filter(recipe=obj)
         return RecipeIngridientSerializer(recipe, many=True).data
 
-    # def get_ingredients(self, obj):
-    #     recipe_ingredients = RecipeIngridient.objects.filter(recipe=obj).values(
-    #         "ingredient__id",
-    #         "ingredient__name",
-    #         "ingredient__measurement_unit",
-    #         "amount"
-    #     )
-    #     return list(recipe_ingredients)
-    def get_ingredients(self, obj):
         ingredients = []
         for ingredient in obj.ingredients.all():
             ingredient_json = {

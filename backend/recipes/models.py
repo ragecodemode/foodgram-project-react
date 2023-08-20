@@ -23,6 +23,13 @@ class Ingredient(models.Model):
     measurement_unit = models.CharField(
         "Единица измерения", max_length=LIMITATION
     )
+    amount = models.FloatField(
+        validators=(MinValueValidator(VALUE_AMOUNT),),
+        error_messages={
+            "errorse": "Колличество не должно быть отрицательным."
+        },
+        default=VALUE_AMOUNT,
+    )
 
     def __str__(self) -> str:
         return f"{self.name}, {self.measurement_unit}."
