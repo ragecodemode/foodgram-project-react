@@ -4,6 +4,7 @@ from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 
 from rest_framework.validators import UniqueTogetherValidator
+from rest_framework.serializers import PrimaryKeyRelatedField, ReadOnlyField, ImageField, IntegerField
 from recipes.models import (LIMITATION, Favorite, Ingredient, Recipe,
                             RecipeIngridient, ShoppingCart, Tag)
 from users.models import Follow
@@ -73,18 +74,7 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = ('id', 'name', 'measurement_unit')
-
-
-class AddIngredientRecipeSerializer(serializers.ModelSerializer):
-    """ Сериализатор добавления ингредиента в рецепт. """
-
-    id = serializers.IntegerField()
-    amount = serializers.IntegerField()
-
-    class Meta:
-        model = RecipeIngridient
-        fields = ['id', 'amount']
+        fields = "__all__"
 
 
 class RecipeIngridientSerializer(serializers.ModelSerializer):
@@ -103,6 +93,22 @@ class RecipeIngridientSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipeIngridient
         fields = ('id', 'name', 'measurement_unit', 'amount')
+
+
+class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
+    """
+    Вложенный сериализатор для RecipeRetrieveUpdate.
+    Обеспечивает работу с моделью RecipeIngredien.
+    """
+
+    id = PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+
+    class Meta:
+        model = RecipeIngridient
+        fields = (
+            "id",
+            "amount",
+        )
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
@@ -153,6 +159,10 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
             "pub_date",
         )
 
+    def get_recipe(self, obj):
+        ingredients = RecipeIngridient.objects.filter(recipe=obj)
+        return RecipeIngridientSerializer(ingredients, many=True).data
+
     def get_ingredients(self, obj):
         """
         Метод для получения списка ингредиентов, связанных с рецептом.
@@ -191,7 +201,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
     ingredients = RecipeIngridientSerializer(many=True)
     author = UserSerializer(read_only=True)
     image = Base64ImageField()
-    tags = serializers.PrimaryKeyRelatedField(
+    tags = PrimaryKeyRelatedField(
         many=True,
         queryset=Tag.objects.all()
     )
@@ -245,10 +255,16 @@ class FavoriteSerializer(serializers.ModelSerializer):
     Сериализатор модели Favorite.
     Добавление рецепта в избранное.
     """
+    id = PrimaryKeyRelatedField(source="recipe", read_only=True)
+    name = ReadOnlyField(source="recipe.name")
+    image = ImageField(source="recipe.image", read_only=True)
+    cooking_time = IntegerField(source="recipe.cooking_time", read_only=True)
 
     class Meta:
         model = Favorite
-        fields = ("user", "recipe")
+        fields = (
+            "id", "name", "image", "cooking_time",
+        )
 
     def validate_favorite(self, data):
         """
@@ -275,11 +291,18 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     Вывод информации об списке покупак.
     """
 
+    id = PrimaryKeyRelatedField(source="recipe", read_only=True)
+    name = ReadOnlyField(source="recipe.name")
+    image = ImageField(source="recipe.image", read_only=True)
+    cooking_time = IntegerField(source="recipe.cooking_time", read_only=True)
+
     class Meta:
         model = ShoppingCart
         fields = (
-            "user",
-            "recipe",
+            "id",
+            "name",
+            "image",
+            "cooking_time",
         )
 
     def validate(self, data):
@@ -332,10 +355,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
         if not request or request.user.is_anonymous:
             return False
         recipe = obj.recipe.filter(author=obj)
-        limit = request.query_params.get('recipes_limit')
-        if limit:
-            recipe = recipe[:int(limit)]
-        seriailizer = ShowFavoriteSerializer(recipe, many=True)
+        seriailizer = RecipeShortSerializer(recipe, many=True)
         return seriailizer.data
 
     def get_recipes_count(self, obj):
