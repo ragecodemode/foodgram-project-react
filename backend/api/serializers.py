@@ -150,9 +150,7 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
         ingredients_data = []
         recipe_ingredients = RecipeIngredient.objects.filter(
             recipe=obj
-            ).values(
-                'ingredient', 'amount', 'measurement_unit'
-            )
+            ).values('ingredient', 'amount', 'measurement_unit')
         for recipe_ingredient in recipe_ingredients:
             ingredient_id = recipe_ingredient['ingredient']
             amount = recipe_ingredient['amount']
