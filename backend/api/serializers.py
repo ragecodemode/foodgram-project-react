@@ -148,7 +148,11 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
 
     def get_ingredients(self, obj):
         ingredients_data = []
-        recipe_ingredients = RecipeIngredient.objects.filter(recipe=obj).values('ingredient', 'amount', 'measurement_unit')
+        recipe_ingredients = RecipeIngredient.objects.filter(
+            recipe=obj
+            ).values(
+                'ingredient', 'amount', 'measurement_unit'
+            )
         for recipe_ingredient in recipe_ingredients:
             ingredient_id = recipe_ingredient['ingredient']
             amount = recipe_ingredient['amount']
@@ -259,18 +263,6 @@ class FavoriteSerializer(serializers.ModelSerializer):
             "id", "name", "image", "cooking_time",
         )
 
-    # def validate_favorite(self, data):
-    #     """
-    #     Метод  проверяет,
-    #     находится ли рецепт уже в избранном у пользователя.
-    #     """
-
-    #     user = data["user"]
-    #     recipe = data["recipe"]
-    #     if user.favorites.filter(recipe).exists():
-    #         raise serializers.ValidationError("Рецепт уже в избранном.")
-    #     return data
-
     def to_representation(self, instance):
         return RecipeShortSerializer(
             instance.recipe,
@@ -297,15 +289,6 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
             "image",
             "cooking_time",
         )
-
-    # def validate(self, data):
-    #     user = data["user"]
-    #     recipe = data["recipe"]
-    #     if user.shopping_cart.filter(recipe).exists():
-    #         raise serializers.ValidateErrore(
-    #             "Рецепт уже есть в списке покупок."
-    #         )
-    #     return data
 
     def to_representation(self, instance):
         return RecipeShortSerializer(
