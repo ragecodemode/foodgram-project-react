@@ -1,6 +1,7 @@
 from django.core.validators import MinValueValidator
 from django.db import models
 from users.models import User
+from django.db.models import UniqueConstraint
 
 from backend.settings import LIMITATION, MIN_VALUE_COOKING_TIME, VALUE_AMOUNT
 
@@ -26,6 +27,17 @@ class Ingredient(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name}, {self.measurement_unit}."
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
+        constraints = [
+            UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='ingredient_name_unit_unique'
+            )
+        ]
 
 
 class Recipe(models.Model):
@@ -83,12 +95,9 @@ class RecipeIngredient(models.Model):
         on_delete=models.CASCADE,
         related_name="Ingredients",
     )
-    amount = models.FloatField(
-        validators=(MinValueValidator(VALUE_AMOUNT),),
-        error_messages={
-            "errorse": "Колличество не должно быть отрицательным."
-        },
-        default=VALUE_AMOUNT,
+    amount = models.IntegerField(
+        'Количество',
+        validators=(MinValueValidator(VALUE_AMOUNT),)  
     )
 
     class Meta:
