@@ -122,7 +122,7 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
 
     tags = TagSerializer(many=True)
     author = UserSerializer(read_only=True)
-    ingredients = serializers.SerializerMethodField()
+    ingredients = IngredientSerializer(many=True)
     author = UserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField(
         method_name='get_is_favorited'
@@ -147,44 +147,20 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
             "pub_date",
         )
 
-    # def get_ingredients(self, obj):
-    #     ingredients_data = []
-    #     recipe_ingredients = RecipeIngredient.objects.filter(recipe=obj)
-    #     for recipe_ingredient in recipe_ingredients:
-    #         ingredient_data = {
-    #             'id': recipe_ingredient.ingredient.id,
-    #             'name': recipe_ingredient.ingredient.name,
-    #             'measurement_unit': recipe_ingredient.ingredient.measurement_unit,
-    #             'amount': recipe_ingredients.amount
-    #         }
-    #         ingredients_data.append(ingredient_data)
-    #     return ingredients_data
-
-    # def get_ingredients(self, obj):
-    #     recipe_ingredients = RecipeIngredient.objects.filter(recipe=obj)
-    #     serializer = RecipeIngredientSerializer(recipe_ingredients, many=True)
-    #     return serializer.data
     def get_ingredients(self, obj):
-        ingredients = obj.ingredients.all()
-        ingredient_data = []
-        for ingredient in ingredients:
-            try:
-                recipe_ingredient = RecipeIngredient.objects.get(recipe=obj, ingredient=ingredient)
-                ingredient_dict = {
-                    'id': ingredient.id,
-                    'name': ingredient.name,
-                    'measurement_unit': ingredient.measurement_unit,
-                    'amount': recipe_ingredient.amount
-                }
-            except RecipeIngredient.DoesNotExist:
-                ingredient_dict = {
-                    'id': ingredient.id,
-                    'name': ingredient.name,
-                    'measurement_unit': ingredient.measurement_unit,
-                    'amount': None
-                }
-            ingredient_data.append(ingredient_dict)
-        return ingredient_data
+        ingredients_data = []
+        recipe_ingredients = RecipeIngredient.objects.filter(recipe=obj)
+        for recipe_ingredient in recipe_ingredients:
+            ingredient_data = {
+                'id': recipe_ingredient.ingredient.id,
+                'name': recipe_ingredient.ingredient.name,
+                'measurement_unit': recipe_ingredient.ingredient.measurement_unit,
+            }
+            ingredients_data.append(ingredient_data)
+        return ingredients_data
+    # def get_ingredients(self, obj):
+    #     ingredients = RecipeIngredient.objects.filter(recipe=obj)
+    #     return RecipeIngredientSerializer(ingredients, many=True).data
 
     def get_is_favorited(self, obj):
         """
@@ -225,7 +201,7 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
     Сериализатор модели Recipe.
     Создание и изменения рецепта.
     """
-    ingredients = AddIngredientInRecipeSerializer(many=True)
+    ingredients = RecipeIngredientSerializer(many=True)
     author = UserSerializer(read_only=True)
     image = Base64ImageField()
     tags = PrimaryKeyRelatedField(
@@ -249,11 +225,11 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
         for ingredient in ingredients:
             amount = ingredient.get('amount')
             RecipeIngredient.objects.create(
-                amount=amount,
                 ingredient=ingredient['id'],
-                recipe=recipe
+                recipe=recipe,
+                amount=amount
             )
-        return recipe
+            return recipe
 
     def update(self, instance, validated_data):
         ingredients = validated_data.pop("ingredients")
