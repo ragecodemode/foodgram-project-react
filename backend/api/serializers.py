@@ -92,6 +92,7 @@ class RecipeIngredientSerializer(serializers.Serializer):
     measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit'
     )
+    amount = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = RecipeIngredient
@@ -154,13 +155,12 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
             ingredient_data = {
                 'id': recipe_ingredient.ingredient.id,
                 'name': recipe_ingredient.ingredient.name,
-                'measurement_unit': recipe_ingredient.ingredient.measurement_unit,
+                'measurement_unit': (
+                    recipe_ingredient.ingredient.measurement_unit
+                ),
             }
             ingredients_data.append(ingredient_data)
         return ingredients_data
-    # def get_ingredients(self, obj):
-    #     ingredients = RecipeIngredient.objects.filter(recipe=obj)
-    #     return RecipeIngredientSerializer(ingredients, many=True).data
 
     def get_is_favorited(self, obj):
         """
