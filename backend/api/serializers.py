@@ -85,14 +85,11 @@ class RecipeIngredientSerializer(serializers.Serializer):
     Сериализатор модели RecipeIngridient.
     Запись о количестве ингредиента.
     """
-    id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all()
-    )
+    id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
     measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit'
     )
-    amount = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = RecipeIngredient
@@ -123,7 +120,9 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
 
     tags = TagSerializer(many=True)
     author = UserSerializer(read_only=True)
-    ingredients = IngredientSerializer(many=True)
+    ingredients = RecipeIngredientSerializer(
+        many=True, source='recipe_ingredients'
+    )
     author = UserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField(
         method_name='get_is_favorited'
@@ -148,20 +147,6 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
             "pub_date",
         )
 
-    def get_ingredients(self, obj):
-        ingredients_data = []
-        recipe_ingredients = RecipeIngredient.objects.filter(recipe=obj)
-        for recipe_ingredient in recipe_ingredients:
-            ingredient_data = {
-                'id': recipe_ingredient.ingredient.id,
-                'name': recipe_ingredient.ingredient.name,
-                'measurement_unit': (
-                    recipe_ingredient.ingredient.measurement_unit
-                ),
-            }
-            ingredients_data.append(ingredient_data)
-        return ingredients_data
-
     def get_is_favorited(self, obj):
         """
         Проверка - находится ли рецепт в избранном.
@@ -183,17 +168,6 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
         return ShoppingCart.objects.filter(
             user=request.user, recipe_id=obj
         ).exists()
-
-
-class AddIngredientInRecipeSerializer(serializers.ModelSerializer):
-    """ Сериализатор добавления ингредиента в рецепт. """
-
-    id = serializers.IntegerField()
-    amount = serializers.IntegerField()
-
-    class Meta:
-        model = RecipeIngredient
-        fields = ['id', 'amount']
 
 
 class RecipeRetrieveUpdate(serializers.ModelSerializer):
