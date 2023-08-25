@@ -18,8 +18,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from .serializers import (SubscriptionsSerializer, IngredientSerializer,
-                          PasswordSerializer, RecipeListCreateSerializer,
-                          RecipeRetrieveUpdate, FavoriteSerializer,
+                          PasswordSerializer, RecipeListSerializer,
+                          RecipeCreateUpdateSerializers, FavoriteSerializer,
                           ShoppingCartSerializer, TagSerializer,
                           UserCreateSerializer, UserSerializer)
 from .filters import RecipeFilter
@@ -168,31 +168,38 @@ class RecipeViewSet(ModelViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
     filterset_class = RecipeFilter
 
-    # def get_queryset(self):
-    #     user = self.request.user
-    #     if not user.is_authenticated:
-    #         user = None
-    #     return (
-    #         Recipe.objects.select_related("author")
-    #         .prefetch_related("ingredients", "tags")
-    #         .annotate(
-    #             is_in_shopping_cart=Exists(
-    #                 ShoppingCart.objects.filter(
-    #                     user=self.request.user, recipes=OuterRef("pk")
-    #                 )
-    #             ),
-    #             is_favorited=Exists(
-    #                 Favorite.objects.filter(
-    #                     user=self.request.user, recipe=OuterRef("pk")
-    #                 )
-    #             ),
-    #         )
-    #     )
+    def get_queryset(self):
+        user = self.request.user
+        tags = self.request.query_params.getlist('tags')
+        if not user.is_authenticated:
+            user = None
+
+        queryset = (
+            Recipe.objects.select_related("author")
+            .prefetch_related("ingredients", "tags")
+            .annotate(
+                is_in_shopping_cart=Exists(
+                    ShoppingCart.objects.filter(
+                        user=self.request.user, recipe=OuterRef("pk")
+                    )
+                ),
+                is_favorited=Exists(
+                    Favorite.objects.filter(
+                        user=self.request.user, recipe=OuterRef("pk")
+                    )
+                ),
+            )
+        )
+
+        if tags:
+            queryset = queryset.filter(tags__slug__in=tags).distinct()
+
+        return queryset
 
     def get_serializer_class(self):
         if self.action in ("list", "retrieve"):
-            return RecipeListCreateSerializer
-        return RecipeRetrieveUpdate
+            return RecipeListSerializer
+        return RecipeCreateUpdateSerializers
 
     @action(
         detail=True,

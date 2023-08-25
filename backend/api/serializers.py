@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
+from django.db import transaction
 
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.serializers import (
@@ -96,6 +97,19 @@ class RecipeIngredientSerializer(serializers.Serializer):
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
 
+class IngredientCreateInRecipeSerializer(serializers.ModelSerializer):
+    recipe = serializers.PrimaryKeyRelatedField(read_only=True)
+    id = serializers.PrimaryKeyRelatedField(
+        source='ingredient',
+        queryset=Ingredient.objects.all()
+    )
+    amount = serializers.IntegerField()
+
+    class Meta:
+        models = RecipeIngredient
+        fields = ('recipe', 'id', 'amount', 'ingredient')
+
+
 class RecipeShortSerializer(serializers.ModelSerializer):
     """
     Сериализатор модели Recipe.
@@ -112,7 +126,7 @@ class RecipeShortSerializer(serializers.ModelSerializer):
         )
 
 
-class RecipeListCreateSerializer(serializers.ModelSerializer):
+class RecipeListSerializer(serializers.ModelSerializer):
     """
     Сериализатор модели Recipe.
     Вывод информации о рецептах.
@@ -147,6 +161,10 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
             "pub_date",
         )
 
+    def get_ingredients(self, obj):
+        ingredients = RecipeIngredient.objects.filter(recipe=obj)
+        return RecipeIngredientSerializer(ingredients, many=True).data
+
     def get_is_favorited(self, obj):
         """
         Проверка - находится ли рецепт в избранном.
@@ -170,7 +188,7 @@ class RecipeListCreateSerializer(serializers.ModelSerializer):
         ).exists()
 
 
-class RecipeRetrieveUpdate(serializers.ModelSerializer):
+class RecipeCreateUpdateSerializers(serializers.ModelSerializer):
     """
     Сериализатор модели Recipe.
     Создание и изменения рецепта.
@@ -195,59 +213,32 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
             'author'
         )
 
-    def validate(self, data):
-        ingredients = self.initial_data.get('ingredients')
-        list = []
+    @transaction.atomic
+    def create_ingredients_amounts(self, ingredients, recipe):
+        recipe_ingredients = []
         for ingredient in ingredients:
-            amount = ingredient['amount']
-            if int(amount) < 1:
-                raise serializers.ValidationError({
-                   'amount': 'Количество ингредиента должно быть больше 0!'
-                })
-            if ingredient['id'] in list:
-                raise serializers.ValidationError({
-                   'ingredient': 'Ингредиенты должны быть уникальными!'
-                })
-            list.append(ingredient['id'])
-        return data
+            ingredient_id = ingredient.get('id')
+            ingredient_amount = ingredient.get('amount')
 
+            if ingredient_id and ingredient_amount:
+                recipe_ingredient = RecipeIngredient(
+                    ingredient=Ingredient.objects.get(id=ingredient_id),
+                    recipe=recipe,
+                    amount=ingredient_amount
+                )
+                recipe_ingredients.append(recipe_ingredient)
+
+        RecipeIngredient.objects.bulk_create(recipe_ingredients)
+
+    @transaction.atomic
     def create(self, validated_data):
         request = self.context.get('request')
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(author=request.user, **validated_data)
-        for tag in tags:
-            recipe.tags.add(tag)
-
-        for ingredient in ingredients:
-            RecipeIngredient.objects.create(
-                id=ingredient.get('id'),
-                recipe=recipe,
-                amount=ingredient.get('amount')
-            )
+        recipe.tags.set(tags)
+        self.create_ingredients_amounts(recipe=recipe, ingredients=ingredients)
         return recipe
-
-    # @staticmethod
-    # def add_ingredients(recipe, ingredients):
-    #     ingredients_list = [
-    #         RecipeIngredient(
-    #             ingredient=Ingredient.objects.get(id=current_ingredient['id']),
-    #             recipe=recipe,
-    #             amount=current_ingredient['amount']
-    #         ) for current_ingredient in ingredients
-    #     ]
-    #     RecipeIngredient.objects.bulk_create(ingredients_list)
-
-    # def create(self, validated_data):
-    #     tags = validated_data.pop('tags')
-    #     ingredients = validated_data.pop('ingredients')
-    #     recipe = Recipe.objects.create(
-    #         author=self.context.get('request').user,
-    #         **validated_data
-    #     )
-    #     recipe.tags.set(tags)
-    #     self.add_ingredients(recipe, ingredients)
-    #     return recipe
 
     def update(self, instance, validated_data):
         ingredients = validated_data.pop("ingredients")
@@ -257,16 +248,15 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
             instance.tags.set(tags)
 
         for ingredient in ingredients:
-            amount = ingredient.get('amount')
             RecipeIngredient.objects.update_or_create(
                 recipe=instance,
-                ingredient=ingredient['id'],
-                amount=amount
+                id=ingredient.get('id'),
+                amount=ingredient.get('amount')
             )
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
-        return RecipeListCreateSerializer(instance, context={
+        return RecipeListSerializer(instance, context={
             'request': self.context.get('request')
         }).data
 
