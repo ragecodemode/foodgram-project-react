@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
+from django.db.models import UniqueConstraint
 
 from backend.settings import LIMITATION
 
@@ -22,6 +23,14 @@ class User(AbstractUser):
         unique=True,
     )
 
+    class Meta:
+        ordering = ('username',)
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
+
+    def __str__(self):
+        return self.username
+
 
 class Follow(models.Model):
     """Модель подписок пользователя."""
@@ -32,6 +41,17 @@ class Follow(models.Model):
     following = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="followers"
     )
+
+    class Meta:
+        ordering = ('-id', )
+        constraints = [
+            UniqueConstraint(
+                fields=('follower', 'following'),
+                name='unique_follow'
+            )
+        ]
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
 
     def __str__(self) -> str:
         return f'{self.follower} подписан на {self.following}'
