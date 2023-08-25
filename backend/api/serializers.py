@@ -227,20 +227,17 @@ class RecipeCreateUpdateSerializers(serializers.ModelSerializer):
         self.create_ingredients_amounts(recipe=recipe, ingredients=ingredients)
         return recipe
 
+    @transaction.atomic
     def update(self, instance, validated_data):
-        ingredients = validated_data.pop("ingredients")
-        tags = validated_data.pop("tags")
-
-        if tags is not None:
-            instance.tags.set(tags)
-
-        for ingredient in ingredients:
-            RecipeIngredient.objects.update_or_create(
-                recipe=instance,
-                id=ingredient.get('id'),
-                amount=ingredient.get('amount')
-            )
-        return super().update(instance, validated_data)
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        instance = super().update(instance, validated_data)
+        instance.tags.clear()
+        instance.tags.set(tags)
+        instance.ingredients.clear()
+        self.create_ingredients_amounts(recipe=instance, ingredients=ingredients)
+        instance.save()
+        return instance
 
     def to_representation(self, instance):
         return RecipeListSerializer(instance, context={
