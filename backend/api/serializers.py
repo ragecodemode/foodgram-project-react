@@ -185,25 +185,69 @@ class RecipeRetrieveUpdate(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = "__all__"
+        fields = (
+            'ingredients',
+            'tags',
+            'name',
+            'image',
+            'text',
+            'cooking_time',
+            'author'
+        )
+
+    def validate(self, data):
+        ingredients = self.initial_data.get('ingredients')
+        list = []
+        for ingredient in ingredients:
+            amount = ingredient['amount']
+            if int(amount) < 1:
+                raise serializers.ValidationError({
+                   'amount': 'Количество ингредиента должно быть больше 0!'
+                })
+            if ingredient['id'] in list:
+                raise serializers.ValidationError({
+                   'ingredient': 'Ингредиенты должны быть уникальными!'
+                })
+            list.append(ingredient['id'])
+        return data
 
     def create(self, validated_data):
         request = self.context.get('request')
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(author=request.user, **validated_data)
-
         for tag in tags:
             recipe.tags.add(tag)
 
         for ingredient in ingredients:
-            amount = ingredient.get('amount')
             RecipeIngredient.objects.create(
-                ingredient=ingredient['id'],
+                id=ingredient.get('id'),
                 recipe=recipe,
-                amount=amount
+                amount=ingredient.get('amount')
             )
-            return recipe
+        return recipe
+
+    # @staticmethod
+    # def add_ingredients(recipe, ingredients):
+    #     ingredients_list = [
+    #         RecipeIngredient(
+    #             ingredient=Ingredient.objects.get(id=current_ingredient['id']),
+    #             recipe=recipe,
+    #             amount=current_ingredient['amount']
+    #         ) for current_ingredient in ingredients
+    #     ]
+    #     RecipeIngredient.objects.bulk_create(ingredients_list)
+
+    # def create(self, validated_data):
+    #     tags = validated_data.pop('tags')
+    #     ingredients = validated_data.pop('ingredients')
+    #     recipe = Recipe.objects.create(
+    #         author=self.context.get('request').user,
+    #         **validated_data
+    #     )
+    #     recipe.tags.set(tags)
+    #     self.add_ingredients(recipe, ingredients)
+    #     return recipe
 
     def update(self, instance, validated_data):
         ingredients = validated_data.pop("ingredients")
