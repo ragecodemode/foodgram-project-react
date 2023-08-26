@@ -235,7 +235,10 @@ class RecipeCreateUpdateSerializers(serializers.ModelSerializer):
         instance.tags.clear()
         instance.tags.set(tags)
         instance.ingredients.clear()
-        self.create_ingredients_amounts(recipe=instance, ingredients=ingredients)
+        self.create_ingredients_amounts(
+            recipe=instance,
+            ingredients=ingredients
+        )
         instance.save()
         return instance
 

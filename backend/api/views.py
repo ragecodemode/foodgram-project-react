@@ -169,11 +169,7 @@ class RecipeViewSet(ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_queryset(self):
-        user = self.request.user
         tags = self.request.query_params.getlist('tags')
-        if not user.is_authenticated:
-            user = None
-
         queryset = (
             Recipe.objects.select_related("author")
             .prefetch_related("ingredients", "tags")
@@ -192,7 +188,7 @@ class RecipeViewSet(ModelViewSet):
         )
 
         if tags:
-            queryset = queryset.filter(tags__slug__in=tags).distinct()
+            queryset = queryset.filter(tags__in=tags).distinct()
 
         return queryset
 
