@@ -6,10 +6,12 @@ class RecipeFilter(filters.FilterSet):
     """Фильтр для модели Recipe."""
 
     author = filters.ModelChoiceFilter(field_name='author__id__in')
-    is_in_shopping_cart = filters.BooleanFilter(method='get_favorite')
-    is_favorited = filters.BooleanFilter(method='get_is_in_shopping_cart')
-    tags = filters.ModelMultipleChoiceFilter(
-        field_name='tags__slug',
+    is_in_shopping_cart = filters.BooleanFilter(
+        method='get_is_in_shopping_cart'
+    )
+    is_favorited = filters.BooleanFilter(method='get_favorite')
+    tags = filters.AllValuesMultipleFilter(
+        field_name='tags__slug__in',
         to_field_name='slug',
         queryset=Tag.objects.all(),
     )

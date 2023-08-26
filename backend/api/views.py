@@ -1,11 +1,11 @@
 from django.db.models import Sum
-# from django.db import IntegrityError
+from django.db.models import Count
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models.expressions import Exists, OuterRef
+from django.db.models.expressions import Exists, OuterRef, Q
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 from users.models import Follow
@@ -170,25 +170,22 @@ class RecipeViewSet(ModelViewSet):
 
     def get_queryset(self):
         tags = self.request.query_params.getlist('tags')
-        queryset = (
-            Recipe.objects.select_related("author")
-            .prefetch_related("ingredients", "tags")
-            .annotate(
-                is_in_shopping_cart=Exists(
-                    ShoppingCart.objects.filter(
-                        user=self.request.user, recipe=OuterRef("pk")
-                    )
-                ),
-                is_favorited=Exists(
-                    Favorite.objects.filter(
-                        user=self.request.user, recipe=OuterRef("pk")
-                    )
-                ),
-            )
-        )
+        user_id = self.request.user.id
+        queryset = Recipe.objects.annotate(
+            is_favorited=Exists(
+                Favorite.objects.filter(
+                    user=user_id, recipe=OuterRef('pk'))),
+            is_in_shopping_cart=Exists(
+                ShoppingCart.objects.filter(
+                    user=self.request.user,
+                    recipe=OuterRef('id')))
+        ).select_related('author').prefetch_related('tags', 'ingredients')
 
         if tags:
-            queryset = queryset.filter(tags__in=tags).distinct()
+            queryset = queryset.filter(tags__slug__in=tags).distinct()
+
+        if self.request.query_params.get('is_favorited'):
+            queryset = queryset.filter(is_favorited=True)
 
         return queryset
 

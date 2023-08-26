@@ -121,8 +121,8 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
     tags = TagSerializer(many=True)
     author = UserSerializer(read_only=True)
-    ingredients = RecipeIngredientSerializer(
-        many=True, source='recipe_ingredients'
+    ingredients = serializers.SerializerMethodField(
+        method_name='get_ingredients'
     )
     author = UserSerializer(read_only=True)
     is_favorited = serializers.SerializerMethodField(
@@ -159,9 +159,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
-        return Favorite.objects.filter(
-            user=request.user, recipe_id=obj
-        ).exists()
+        return obj.favorite.filter(user=request.user).exists()
 
     def get_is_in_shopping_cart(self, obj):
         """
@@ -170,9 +168,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
-        return ShoppingCart.objects.filter(
-            user=request.user, recipe_id=obj
-        ).exists()
+        return obj.shopping_cart.filter(user=request.user).exists()
 
 
 class RecipeCreateUpdateSerializers(serializers.ModelSerializer):

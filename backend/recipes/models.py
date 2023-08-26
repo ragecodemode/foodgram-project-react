@@ -64,9 +64,7 @@ class Recipe(models.Model):
     text = models.TextField("Описание рецепта")
     ingredients = models.ManyToManyField(
         Ingredient,
-        "Ингридиенты",
-        through="RecipeIngredient",
-        verbose_name="ingredients",
+        through="RecipeIngredient"
     )
     cooking_time = models.BigIntegerField(
         "Время готовки",
@@ -78,7 +76,11 @@ class Recipe(models.Model):
         default=MIN_VALUE_COOKING_TIME,
     )
     pub_date = models.DateField(auto_now_add=True)
-    tags = models.ManyToManyField(Tag, verbose_name="Теги")
+    tags = models.ManyToManyField(
+        Tag,
+        verbose_name="Теги",
+        related_name="recipes"
+    )
 
     class Meta:
         ordering = ('-pub_date',)
@@ -148,10 +150,12 @@ class ShoppingCart(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name="Рецепт",
+        related_name="shopping_cart"
     )
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="Пользователь"
+        User,
+        on_delete=models.CASCADE,
+        related_name="shopping_cart"
     )
 
     class Meta:
