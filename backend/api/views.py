@@ -1,11 +1,10 @@
 from django.db.models import Sum
-from django.db.models import Count
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models.expressions import Exists, OuterRef, Q
+from django.db.models.expressions import Exists, OuterRef
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 from users.models import Follow

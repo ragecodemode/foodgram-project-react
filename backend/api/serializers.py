@@ -314,7 +314,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     Вывод списка подписок пользователя.
     """
     is_subscribed = serializers.SerializerMethodField()
-    recipe = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -337,7 +337,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
         return Follow.objects.filter(
             follower=request.user, following=obj).exists()
 
-    def get_recipe(self, obj):
+    def get_recipes(self, obj):
         request = self.context.get('request')
         if not request or request.user.is_anonymous:
             return False
