@@ -176,8 +176,7 @@ class RecipeViewSet(ModelViewSet):
                     user=user_id, recipe=OuterRef('pk'))),
             is_in_shopping_cart=Exists(
                 ShoppingCart.objects.filter(
-                    user=self.request.user,
-                    recipe=OuterRef('id')))
+                    user=user_id, recipe=OuterRef('pk')))
         ).select_related('author').prefetch_related('tags', 'ingredients')
 
         if tags:
@@ -185,6 +184,9 @@ class RecipeViewSet(ModelViewSet):
 
         if self.request.query_params.get('is_favorited'):
             queryset = queryset.filter(is_favorited=True)
+
+        if self.request.query_params.get('is_in_shopping_cart'):
+            queryset = queryset.filter(is_in_shopping_cart=True)
 
         return queryset
 

@@ -326,7 +326,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
             'first_name',
             'last_name',
             'is_subscribed',
-            'recipe',
+            'recipes',
             'recipes_count'
         )
 
