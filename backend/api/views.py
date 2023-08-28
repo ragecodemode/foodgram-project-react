@@ -62,6 +62,17 @@ class UserViewSet(UserViewSet):
     serializer_class = UserCreateSerializer()
     permission_classes = (AllowAny,)
 
+    def get_queryset(self):
+        queryset = User.objects.annotate(
+            is_subscribed=Exists(
+                Follow.objects.filter(
+                    following=self.request.user.id, follower=OuterRef('id'))
+            )).prefetch_related('follows', 'followers')
+
+        if self.request.query_params.get('is_subscribed'):
+            queryset = queryset.filter(is_subscribed=True)
+        return queryset
+
     def get_serializer_class(self):
         if self.action == "create":
             return UserCreateSerializer
