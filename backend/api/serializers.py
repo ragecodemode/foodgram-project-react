@@ -22,7 +22,9 @@ class UserSerializer(serializers.ModelSerializer):
     Сериализатор модели User.
     Вывод информации о пользователях.
     """
-    is_subscribed = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField(
+        method_name="get_is_subscribed"
+    )
 
     class Meta:
         model = User
@@ -309,14 +311,33 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         ).data
 
 
+class SubscribeRecipeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+
+
 class SubscriptionsSerializer(serializers.ModelSerializer):
     """
     Сериализатор модели User.
     Вывод списка подписок пользователя.
     """
-    is_subscribed = serializers.SerializerMethodField()
+    id = serializers.IntegerField(
+        source='author.id')
+    email = serializers.EmailField(
+        source='author.email')
+    username = serializers.CharField(
+        source='author.username')
+    first_name = serializers.CharField(
+        source='author.first_name')
+    last_name = serializers.CharField(
+        source='author.last_name')
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
+    is_subscribed = serializers.BooleanField(
+        read_only=True)
+    recipes_count = serializers.IntegerField(
+        read_only=True)
 
     class Meta:
         model = User
@@ -340,11 +361,14 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
 
     def get_recipes(self, obj):
         request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return False
-        recipe = obj.recipe.filter(author=obj)
-        seriailizer = RecipeShortSerializer(recipe, many=True)
-        return seriailizer.data
+        limit = request.GET.get('recipes_limit')
+        recipes = (
+            obj.author.recipe.all()[:int(limit)] if limit
+            else obj.author.recipe.all())
+        return SubscribeRecipeSerializer(
+            recipes,
+            many=True
+        ).data
 
     def get_recipes_count(self, obj):
         return obj.recipe.count()
@@ -359,7 +383,7 @@ class SubscribeListSerializer(serializers.ModelSerializer):
         validators = [
             UniqueTogetherValidator(
                 queryset=Follow.objects.all(),
-                fields=['user', 'author'],
+                fields=['follower', 'following'],
             )
         ]
 

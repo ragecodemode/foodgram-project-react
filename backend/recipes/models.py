@@ -98,7 +98,8 @@ class RecipeIngredient(models.Model):
     )
     ingredient = models.ForeignKey(
         Ingredient,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='ingredient'
     )
     amount = models.IntegerField(
         'Количество',
@@ -111,10 +112,10 @@ class RecipeIngredient(models.Model):
         verbose_name = "Колличество ингридиентов"
         verbose_name_plural = "Колличество ингридиентов"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
-            f'{self.ingredient.name} :: {self.ingredient.measurement_unit}'
-            f' - {self.amount} '
+            f"{self.recipe.name} {self.ingredient.name} "
+            f"{self.amount} {self.ingredient.measurement_unit}"
         )
 
 
@@ -122,7 +123,9 @@ class Favorite(models.Model):
     """Модель избранного рецепта пользователя."""
 
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name="favorite"
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="favorite"
     )
     user = models.ForeignKey(
         User,
@@ -141,7 +144,7 @@ class Favorite(models.Model):
         ]
 
     def __str__(self) -> str:
-        return f"{self.user} :: {self.recipe}"
+        return f"{self.user} {self.recipe.name}"
 
 
 class ShoppingCart(models.Model):

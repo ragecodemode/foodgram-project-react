@@ -57,8 +57,6 @@ class UserViewSet(UserViewSet):
     ViewSet модели User.
     Полный набор действий.
     """
-
-    queryset = User.objects.all()
     serializer_class = UserCreateSerializer()
     permission_classes = (AllowAny,)
 
@@ -66,7 +64,7 @@ class UserViewSet(UserViewSet):
         queryset = User.objects.annotate(
             is_subscribed=Exists(
                 Follow.objects.filter(
-                    following=self.request.user.id, follower=OuterRef('id'))
+                    following=self.request.user, follower=OuterRef('id'))
             )).prefetch_related('follows', 'followers')
 
         if self.request.query_params.get('is_subscribed'):
