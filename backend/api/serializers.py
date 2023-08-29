@@ -324,15 +324,15 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     Вывод списка подписок пользователя.
     """
     id = serializers.IntegerField(
-        source='author.id')
+        source='following.id')
     email = serializers.EmailField(
-        source='author.email')
+        source='following.email')
     username = serializers.CharField(
-        source='author.username')
+        source='following.username')
     first_name = serializers.CharField(
-        source='author.first_name')
+        source='following.first_name')
     last_name = serializers.CharField(
-        source='author.last_name')
+        source='following.last_name')
     recipes = serializers.SerializerMethodField()
     is_subscribed = serializers.BooleanField(
         read_only=True)

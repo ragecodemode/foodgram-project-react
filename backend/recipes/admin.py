@@ -11,8 +11,11 @@ class RecipeIngredientInline(admin.TabularInline):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('author', 'name', 'text', 'cooking_time')
-    search_fields = ('author', 'name', 'tag')
+    list_display = ('id', 'author', 'name', 'text', 'cooking_time')
+    search_fields = (
+        'name', 'cooking_time',
+        'author__email', 'ingredients__name'
+    )
     list_filter = ('author', 'name', 'tags')
     empty_value_display = '-пусто-'
     inlines = (RecipeIngredientInline,)
