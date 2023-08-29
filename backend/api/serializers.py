@@ -323,16 +323,11 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     Сериализатор модели User.
     Вывод списка подписок пользователя.
     """
-    id = serializers.IntegerField(
-        source='following.id')
-    email = serializers.EmailField(
-        source='following.email')
-    username = serializers.CharField(
-        source='following.username')
-    first_name = serializers.CharField(
-        source='following.first_name')
-    last_name = serializers.CharField(
-        source='following.last_name')
+    id = serializers.IntegerField()
+    email = serializers.EmailField()
+    username = serializers.CharField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
     recipes = serializers.SerializerMethodField()
     is_subscribed = serializers.BooleanField(
         read_only=True)
@@ -340,7 +335,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
         read_only=True)
 
     class Meta:
-        model = User
+        model = Follow
         fields = (
             'id',
             'email',
@@ -361,14 +356,14 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
 
     def get_recipes(self, obj):
         request = self.context.get('request')
-        limit = request.GET.get('recipes_limit')
-        recipes = (
-            obj.author.recipe.all()[:int(limit)] if limit
-            else obj.author.recipe.all())
+        if not request or request.user.is_anonymous:
+            return False
+        recipes = Recipe.objects.filter(author=obj)
+        limit = request.query_params.get('recipes_limit')
+        if limit:
+            recipes = recipes[:int(limit)]
         return SubscribeRecipeSerializer(
-            recipes,
-            many=True
-        ).data
+            recipes, many=True, context={'request': request}).data
 
     def get_recipes_count(self, obj):
         return obj.recipe.count()
