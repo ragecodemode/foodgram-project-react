@@ -1,9 +1,12 @@
 from django.core.validators import MinValueValidator
+from django.contrib.auth import get_user_model
 from django.db import models
-from users.models import User
+# from users.models import User
 from django.db.models import UniqueConstraint
 
 from backend.settings import LIMITATION, MIN_VALUE_COOKING_TIME, VALUE_AMOUNT
+
+User = get_user_model()
 
 
 class Tag(models.Model):

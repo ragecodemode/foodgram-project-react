@@ -174,12 +174,27 @@ class RecipeListSerializer(serializers.ModelSerializer):
         return obj.shopping_cart.filter(user=request.user).exists()
 
 
+class IngredientAddRecipeSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для добавления ингредиентов в рецепт.
+    """
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),
+        source='ingredient'
+    )
+    amount = serializers.IntegerField()
+
+    class Meta:
+        model = RecipeIngredient
+        fields = ('id', 'amount')
+
+
 class RecipeCreateUpdateSerializers(serializers.ModelSerializer):
     """
     Сериализатор модели Recipe.
     Создание и изменения рецепта.
     """
-    ingredients = RecipeIngredientSerializer(many=True)
+    ingredients = IngredientAddRecipeSerializer(many=True)
     author = UserSerializer(read_only=True)
     image = Base64ImageField()
     tags = PrimaryKeyRelatedField(
@@ -323,16 +338,9 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     Сериализатор модели User.
     Вывод списка подписок пользователя.
     """
-    id = serializers.IntegerField()
-    email = serializers.EmailField()
-    username = serializers.CharField()
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
     recipes = serializers.SerializerMethodField()
-    is_subscribed = serializers.BooleanField(
-        read_only=True)
-    recipes_count = serializers.IntegerField(
-        read_only=True)
+    is_subscribed = serializers.BooleanField(read_only=True)
+    recipes_count = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Follow
