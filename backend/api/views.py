@@ -165,7 +165,7 @@ class UserViewSet(UserViewSet):
         на которых подписан пользователь.
         """
         user = request.user
-        queryset = Follow.objects.filter(user=user)
+        queryset = Follow.objects.filter(following__user=user)
         pages = self.paginate_queryset(queryset)
         serializer = SubscribeListSerializer(
             pages, many=True,
