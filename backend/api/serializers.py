@@ -343,7 +343,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     recipes_count = serializers.IntegerField(read_only=True)
 
     class Meta:
-        model = Follow
+        model = User
         fields = (
             'id',
             'email',
@@ -382,7 +382,7 @@ class SubscribeListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Follow
-        fileds = '__all__'
+        fields = '__all__'
         validators = [
             UniqueTogetherValidator(
                 queryset=Follow.objects.all(),
@@ -391,7 +391,7 @@ class SubscribeListSerializer(serializers.ModelSerializer):
         ]
 
     def to_representation(self, instance):
-        return SubscriptionsSerializer(instance.author, context={
+        return SubscriptionsSerializer(instance.followers, context={
             'request': self.context.get('request')
         }).data
 
