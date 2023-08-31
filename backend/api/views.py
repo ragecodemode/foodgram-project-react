@@ -20,8 +20,7 @@ from .serializers import (SubscriptionsSerializer, IngredientSerializer,
                           PasswordSerializer, RecipeListSerializer,
                           RecipeCreateUpdateSerializers, FavoriteSerializer,
                           ShoppingCartSerializer, TagSerializer,
-                          UserCreateSerializer, UserSerializer,
-                          SubscribeListSerializer)
+                          UserCreateSerializer, UserSerializer)
 from .filters import RecipeFilter
 from api.permissions import IsAuthenticatedOrReadOnly
 User = get_user_model()
@@ -165,7 +164,7 @@ class UserViewSet(UserViewSet):
         на которых подписан пользователь.
         """
         user = request.user
-        queryset = User.objects.filter(followers__id=user.id)
+        queryset = User.objects.filter(followers__follower=user.id)
         pages = self.paginate_queryset(queryset)
         serializer = SubscriptionsSerializer(
             pages, many=True,

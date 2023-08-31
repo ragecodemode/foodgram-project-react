@@ -338,9 +338,9 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     Сериализатор модели User.
     Вывод списка подписок пользователя.
     """
+    is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
-    is_subscribed = serializers.BooleanField(read_only=True)
-    recipes_count = serializers.IntegerField(read_only=True)
+    recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = User
