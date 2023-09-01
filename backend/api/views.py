@@ -15,6 +15,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.pagination import PageNumberPagination
 
 from .serializers import (SubscriptionsSerializer, IngredientSerializer,
                           PasswordSerializer, RecipeListSerializer,
@@ -57,19 +58,10 @@ class UserViewSet(UserViewSet):
     ViewSet модели User.
     Полный набор действий.
     """
+    queryset = User.objects.all()
     serializer_class = UserCreateSerializer()
+    pagination_class = PageNumberPagination
     permission_classes = (AllowAny,)
-
-    def get_queryset(self):
-        queryset = User.objects.annotate(
-            is_subscribed=Exists(
-                Follow.objects.filter(
-                    following=self.request.user, follower=OuterRef('id'))
-            )).prefetch_related('follows', 'followers')
-
-        if self.request.query_params.get('is_subscribed'):
-            queryset = queryset.filter(is_subscribed=True)
-        return queryset
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -81,15 +73,20 @@ class UserViewSet(UserViewSet):
         return UserSerializer
 
     @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
-    def get_current_user(self, request):
+    def me(self, request):
         """
         Запрос к эндпоинту /me/.
         Получения информации о текущем пользователе.
         """
-        self.get_object = self.request.user
-        return self.retrieve(request)
+        user = request.user
+        serializer = UserSerializer(user, context={'request': request})
+        return Response(serializer.data)
 
-    @action(("post",), detail=False, permission_classes=(IsAuthenticated,))
+    @action(
+        methods=("post",),
+        detail=True,
+        permission_classes=(IsAuthenticated,)
+    )
     def set_password(self, request):
         """
         Запрос к эндпоинту /set_password/.
