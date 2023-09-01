@@ -56,7 +56,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
 class UserViewSet(UserViewSet):
     """
     ViewSet модели User.
-    Полный набор действий.
+    Поддерживает полный набор действий.
     """
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer()
