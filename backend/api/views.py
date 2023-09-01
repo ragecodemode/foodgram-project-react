@@ -72,6 +72,13 @@ class UserViewSet(UserViewSet):
             return SubscriptionsSerializer
         return UserSerializer
 
+    def list(self, request, *args, **kwargs):
+        # queryset = self.filter_queryset(self.get_queryset())
+        current_user = request.user
+        recipes = Recipe.objects.filter(author=current_user)
+        serializer = RecipeListSerializer(recipes, many=True)
+        return Response(serializer.data)
+
     @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
     def me(self, request):
         """
