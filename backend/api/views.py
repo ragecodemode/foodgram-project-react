@@ -1,4 +1,5 @@
 from django.db.models import Sum
+from django.core.cache import cache
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
@@ -71,6 +72,16 @@ class UserViewSet(UserViewSet):
         if self.action == "subscriptions":
             return SubscriptionsSerializer
         return UserSerializer
+
+    def get_queryset(self):
+        user_ids = self.request.query_params.getlist('user')
+
+        if user_ids:
+            queryset = User.objects.filter(id__in=user_ids)
+        else:
+            queryset = User.objects.all()
+
+        return queryset
 
     @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
     def me(self, request):
@@ -275,6 +286,7 @@ class RecipeViewSet(ModelViewSet):
                 favorite = Favorite.objects.get(
                     recipe=recipe, user=request.user
                 ).delete()
+                cache.clear()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     def create_ingredients_file(self, request):
