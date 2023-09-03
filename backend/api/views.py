@@ -49,7 +49,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
     filter_backends = (SearchFilter,)
-    search_fields = ("^name",)
+    search_fields = ("name",)
     pagination_class = None
 
 
@@ -72,8 +72,8 @@ class UserViewSet(UserViewSet):
             return SubscriptionsSerializer
         return UserSerializer
 
-    # def list(self, request, *args, **kwargs):
-    #     # queryset = self.filter_queryset(self.get_queryset())
+    # def get_queryset(self, request):
+    #     queryset = self.filter_queryset(self.get_queryset())
     #     current_user = request.user
     #     recipes = Recipe.objects.filter(author=current_user)
     #     serializer = RecipeListSerializer(recipes, many=True)
@@ -96,17 +96,17 @@ class UserViewSet(UserViewSet):
 
     #     return queryset
 
-    def get_queryset(self):
-        current_user = self.request.user
+    # def get_queryset(self):
+    #     current_user = self.request.user
 
-        user_ids = self.request.query_params.getlist('user')
+    #     user_ids = self.request.query_params.getlist('user')
 
-        if user_ids:
-            queryset = User.objects.filter(id__in=user_ids)
-        else:
-            queryset = User.objects.filter(id=current_user.id)
+    #     if user_ids:
+    #         queryset = User.objects.filter(id__in=user_ids)
+    #     else:
+    #         queryset = User.objects.filter(id=current_user.id)
 
-        return queryset
+    #     return queryset
 
     @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
     def me(self, request):

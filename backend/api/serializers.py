@@ -94,6 +94,7 @@ class RecipeIngredientSerializer(serializers.Serializer):
     measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit'
     )
+    amount = serializers.IntegerField()
 
     class Meta:
         model = RecipeIngredient
@@ -114,6 +115,21 @@ class RecipeShortSerializer(serializers.ModelSerializer):
             "image",
             "cooking_time",
         )
+
+
+class IngredientAddRecipeSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для добавления ингредиентов в рецепт.
+    """
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),
+        source='ingredient'
+    )
+    amount = serializers.IntegerField()
+
+    class Meta:
+        model = RecipeIngredient
+        fields = ('id', 'amount')
 
 
 class RecipeListSerializer(serializers.ModelSerializer):
@@ -152,9 +168,10 @@ class RecipeListSerializer(serializers.ModelSerializer):
             "pub_date",
         )
 
-    def get_ingredients(self, obj):
-        ingredients = RecipeIngredient.objects.filter(recipe=obj)
-        return RecipeIngredientSerializer(ingredients, many=True).data
+    # def get_ingredients(self, obj):
+    #     ingredients = RecipeIngredient.objects.filter(recipe=obj)
+    #     recipe_ingredients = obj.recipe_ingredients.all()
+    #     return RecipeIngredientSerializer(recipe_ingredients, many=True).data
 
     def get_is_favorited(self, obj):
         """
@@ -173,21 +190,6 @@ class RecipeListSerializer(serializers.ModelSerializer):
         if not request or request.user.is_anonymous:
             return False
         return obj.shopping_cart.filter(user=request.user).exists()
-
-
-class IngredientAddRecipeSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор для добавления ингредиентов в рецепт.
-    """
-    id = serializers.PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all(),
-        source='ingredient'
-    )
-    amount = serializers.IntegerField()
-
-    class Meta:
-        model = RecipeIngredient
-        fields = ('id', 'amount')
 
 
 class RecipeCreateUpdateSerializers(serializers.ModelSerializer):
@@ -339,12 +341,24 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     Сериализатор модели User.
     Вывод списка подписок пользователя.
     """
+    id = ReadOnlyField(
+        source=' following.id'
+    )
+    username = ReadOnlyField(
+        source=' following.username'
+    )
+    first_name = ReadOnlyField(
+        source=' following.first_name'
+    )
+    last_name = ReadOnlyField(
+        source=' following.last_name'
+    )
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = User
+        model = Follow
         fields = (
             'id',
             'email',
