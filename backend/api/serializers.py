@@ -168,11 +168,6 @@ class RecipeListSerializer(serializers.ModelSerializer):
             "pub_date",
         )
 
-    # def get_ingredients(self, obj):
-    #     ingredients = RecipeIngredient.objects.filter(recipe=obj)
-    #     recipe_ingredients = obj.recipe_ingredients.all()
-    #     return RecipeIngredientSerializer(recipe_ingredients, many=True).data
-
     def get_is_favorited(self, obj):
         """
         Проверка - находится ли рецепт в избранном.
@@ -358,7 +353,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = Follow
+        model = User
         fields = (
             'id',
             'email',

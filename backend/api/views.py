@@ -72,42 +72,6 @@ class UserViewSet(UserViewSet):
             return SubscriptionsSerializer
         return UserSerializer
 
-    # def get_queryset(self, request):
-    #     queryset = self.filter_queryset(self.get_queryset())
-    #     current_user = request.user
-    #     recipes = Recipe.objects.filter(author=current_user)
-    #     serializer = RecipeListSerializer(recipes, many=True)
-    #     return Response(serializer.data)
-
-    # def get_queryset(self):
-    #     """
-    #     Get the queryset for the user view.
-
-    #     This method is responsible for filtering the queryset to only include
-    #     users that the current user is allowed to see.
-    #     """
-    #     current_user = self.request.user
-    #     queryset = User.objects.filter(id=current_user.id)
-
-    #     # Check if the user ID is specified in the query parameters.
-    #     user_ids = self.request.query_params.getlist('user')
-    #     if user_ids:
-    #         queryset = queryset.filter(id__in=user_ids)
-
-    #     return queryset
-
-    # def get_queryset(self):
-    #     current_user = self.request.user
-
-    #     user_ids = self.request.query_params.getlist('user')
-
-    #     if user_ids:
-    #         queryset = User.objects.filter(id__in=user_ids)
-    #     else:
-    #         queryset = User.objects.filter(id=current_user.id)
-
-    #     return queryset
-
     @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
     def me(self, request):
         """
