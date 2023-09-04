@@ -31,7 +31,7 @@ User = get_user_model()
 class TagViewSet(ReadOnlyModelViewSet):
     """
     ViewSet модели Tag.
-    Предоставляет только действия list() и retrieve().
+    Отображение тегов.
     """
 
     queryset = Tag.objects.all()
@@ -43,7 +43,7 @@ class TagViewSet(ReadOnlyModelViewSet):
 class IngredientViewSet(ReadOnlyModelViewSet):
     """
     ViewSet модели Ingredient.
-    Предоставляет только действия list() и retrieve().
+    Отображение ингредиентов.
     """
 
     queryset = Ingredient.objects.all()
