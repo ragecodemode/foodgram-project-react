@@ -73,18 +73,6 @@ class UserViewSet(UserViewSet):
             return SubscriptionsSerializer
         return UserSerializer
 
-    def get_queryset(self):
-        current_user = self.request.user
-        queryset = super().get_queryset()
-        if current_user.is_authenticated:
-            queryset = queryset.filter(id=current_user.id)
-            print(queryset.count())
-        return queryset
-
-    # def get_queryset(self):
-    #     authors = self.request.user.followers.values('following').all()
-    #     return User.objects.filter(id__in=authors).prefetch_related('recipe')
-
     @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
     def me(self, request):
         """
