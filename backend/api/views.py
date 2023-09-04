@@ -73,16 +73,6 @@ class UserViewSet(UserViewSet):
             return SubscriptionsSerializer
         return UserSerializer
 
-    def get_queryset(self):
-        user_ids = self.request.query_params.getlist('user')
-
-        if user_ids:
-            queryset = User.objects.filter(id__in=user_ids)
-        else:
-            queryset = User.objects.all()
-
-        return queryset
-
     @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
     def me(self, request):
         """

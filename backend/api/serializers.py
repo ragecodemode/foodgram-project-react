@@ -332,18 +332,18 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     Сериализатор модели User.
     Вывод списка подписок пользователя.
     """
-    id = ReadOnlyField(
-        source=' following.id'
-    )
-    username = ReadOnlyField(
-        source=' following.username'
-    )
-    first_name = ReadOnlyField(
-        source=' following.first_name'
-    )
-    last_name = ReadOnlyField(
-        source=' following.last_name'
-    )
+    # id = ReadOnlyField(
+    #     source=' following.id'
+    # )
+    # username = ReadOnlyField(
+    #     source=' following.username'
+    # )
+    # first_name = ReadOnlyField(
+    #     source=' following.first_name'
+    # )
+    # last_name = ReadOnlyField(
+    #     source=' following.last_name'
+    # )
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
@@ -380,7 +380,7 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
             recipes, many=True, context={'request': request}).data
 
     def get_recipes_count(self, obj):
-        return obj.recipe.count()
+        return Recipe.objects.filter(author=obj).count()
 
 
 class SubscribeListSerializer(serializers.ModelSerializer):
