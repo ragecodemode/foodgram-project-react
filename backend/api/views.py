@@ -190,7 +190,7 @@ class RecipeViewSet(ModelViewSet):
             is_in_shopping_cart=Exists(
                 ShoppingCart.objects.filter(
                     user=user_id, recipe=OuterRef('pk')))
-        ).filter(author_id=user_id).prefetch_related('tags', 'ingredients')
+        ).select_related('author').prefetch_related('tags', 'ingredients')
 
         if author:
             queryset = queryset.filter(author_id=author)
