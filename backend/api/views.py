@@ -182,6 +182,7 @@ class RecipeViewSet(ModelViewSet):
     def get_queryset(self):
         tags = self.request.query_params.getlist('tags')
         user_id = self.request.user.id
+        author = self.request.query_params.get('author')
         queryset = Recipe.objects.annotate(
             is_favorited=Exists(
                 Favorite.objects.filter(
@@ -189,7 +190,10 @@ class RecipeViewSet(ModelViewSet):
             is_in_shopping_cart=Exists(
                 ShoppingCart.objects.filter(
                     user=user_id, recipe=OuterRef('pk')))
-        ).select_related('author').prefetch_related('tags', 'ingredients')
+        ).filter(author_id=user_id).prefetch_related('tags', 'ingredients')
+
+        if author:
+            queryset = queryset.filter(author_id=author)
 
         if tags:
             queryset = queryset.filter(tags__slug__in=tags).distinct()
