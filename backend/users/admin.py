@@ -21,4 +21,14 @@ class UserAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
-admin.site.register(Follow)
+@admin.register(Follow)
+class FollownAdmin(admin.ModelAdmin):
+    list_display = ['follower', 'following']
+    search_fields = [
+        'following__username',
+        'following__email',
+        'follower__username',
+        'follower__email'
+    ]
+    list_filter = ['following__username', 'follower__username']
+    empty_value_display = '-пусто-'

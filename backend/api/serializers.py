@@ -209,6 +209,27 @@ class RecipeCreateUpdateSerializers(serializers.ModelSerializer):
             'author'
         )
 
+    def validate_ingredients(self, ingredients):
+        ingredients_list = []
+        if not ingredients:
+            raise serializers.ValidationError(
+                'Отсутствуют ингридиенты')
+        for ingredient in ingredients:
+            if ingredient['id'] in ingredients_list:
+                raise serializers.ValidationError(
+                    'Ингридиенты должны быть уникальны')
+            ingredients_list.append(ingredient['id'])
+            if int(ingredient.get('amount')) < 1:
+                raise serializers.ValidationError(
+                    'Количество ингредиента больше 0')
+        return ingredients
+
+    def validate_cooking_time(self, cooking_time):
+        if int(cooking_time) < 1:
+            raise serializers.ValidationError(
+                'Время приготовления >= 1!')
+        return cooking_time
+
     @transaction.atomic
     def create_ingredients_amounts(self, ingredients, recipe):
         recipe_ingredients = []

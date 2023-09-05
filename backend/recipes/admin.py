@@ -11,14 +11,26 @@ class RecipeIngredientInline(admin.TabularInline):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'author', 'name', 'text', 'cooking_time')
+    list_display = (
+        'id', 'author', 'name',
+        'text', 'cooking_time', 'get_favorites', 'get_ingredients'
+    )
     search_fields = (
-        'name', 'cooking_time',
-        'author__email', 'ingredients__name'
+        'name', 'author', 'tags'
     )
     list_filter = ('author', 'name', 'tags')
     empty_value_display = '-пусто-'
     inlines = (RecipeIngredientInline,)
+
+    def get_favorites(self, obj):
+        return obj.favorite.count()
+    get_favorites.short_description = 'Избранное'
+
+    def get_ingredients(self, obj):
+        return ', '.join([
+            ingredients.name for ingredients
+            in obj.ingredients.all()])
+    get_ingredients.short_description = 'Ингридиенты'
 
 
 @admin.register(Ingredient)
@@ -28,7 +40,25 @@ class IngredientAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
-admin.site.register(Tag)
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'recipe']
+    search_fields = ['user__username', 'user__email', 'user']
+    empty_value_display = '-пусто-'
+
+
+@admin.register(ShoppingCart)
+class ShoppingCartAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'recipe']
+    search_fields = ['user__username', 'user__email']
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'color', 'slug']
+    search_fields = ['name', 'slug']
+    empty_value_display = '-пусто-'
+
+
 admin.site.register(RecipeIngredient)
-admin.site.register(Favorite)
-admin.site.register(ShoppingCart)

@@ -12,7 +12,6 @@ from users.models import Follow
 
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -23,7 +22,7 @@ from .serializers import (SubscriptionsSerializer, IngredientSerializer,
                           RecipeCreateUpdateSerializers, FavoriteSerializer,
                           ShoppingCartSerializer, TagSerializer,
                           UserCreateSerializer, UserSerializer)
-from .filters import RecipeFilter
+from .filters import RecipeFilter, IngredientSearch
 from api.permissions import IsAuthenticatedOrReadOnly
 User = get_user_model()
 
@@ -49,8 +48,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
-    filter_backends = (SearchFilter,)
-    search_fields = ("name",)
+    filter_backends = (IngredientSearch,)
     pagination_class = None
 
 
@@ -178,31 +176,37 @@ class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = (IsAuthenticatedOrReadOnly,)
     filterset_class = RecipeFilter
+    ordering_fields = ('pub_date')
+    ordering = ('-pub_date',)
 
     def get_queryset(self):
         tags = self.request.query_params.getlist('tags')
-        user_id = self.request.user.id
-        author = self.request.query_params.get('author')
+        user = self.request.user
+        # author = self.request.query_params.get('author')
+        is_favorite = self.request.query_params.get('is_favorited')
+        is_in_shopping_cart = self.request.query_params.get(
+            'is_in_shopping_cart'
+        )
         queryset = Recipe.objects.annotate(
             is_favorited=Exists(
                 Favorite.objects.filter(
-                    user=user_id, recipe=OuterRef('pk'))),
+                    user=user, recipe=OuterRef('pk'))),
             is_in_shopping_cart=Exists(
                 ShoppingCart.objects.filter(
-                    user=user_id, recipe=OuterRef('pk')))
+                    user=user, recipe=OuterRef('pk')))
         ).select_related('author').prefetch_related('tags', 'ingredients')
 
-        if author:
-            queryset = queryset.filter(author_id=author)
+        # if author:
+        #     queryset = queryset.filter(author_id=author)
 
         if tags:
             queryset = queryset.filter(tags__slug__in=tags).distinct()
 
-        if self.request.query_params.get('is_favorited'):
-            queryset = queryset.filter(is_favorited=True)
+        if is_favorite:
+            queryset = queryset.filter(favorite__user=user)
 
-        if self.request.query_params.get('is_in_shopping_cart'):
-            queryset = queryset.filter(is_in_shopping_cart=True)
+        if is_in_shopping_cart:
+            queryset = queryset.filter(shopping__user=user)
 
         return queryset
 
