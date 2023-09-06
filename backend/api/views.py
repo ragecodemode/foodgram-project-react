@@ -1,16 +1,16 @@
 from django.db.models import Sum
-from django.core.cache import cache
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models.expressions import Exists, OuterRef
+# from django.db.models.expressions import Exists, OuterRef
+from django_filters.rest_framework import DjangoFilterBackend
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 from users.models import Follow
 
-from rest_framework import status
+from rest_framework import status, filters
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -22,7 +22,7 @@ from .serializers import (SubscriptionsSerializer, IngredientSerializer,
                           RecipeCreateUpdateSerializers, FavoriteSerializer,
                           ShoppingCartSerializer, TagSerializer,
                           UserCreateSerializer, UserSerializer)
-from .filters import RecipeFilter, IngredientSearch
+from .filters import IngredientSearch
 from api.permissions import IsAuthenticatedOrReadOnly
 User = get_user_model()
 
@@ -57,10 +57,11 @@ class UserViewSet(UserViewSet):
     ViewSet модели User.
     Поддерживает полный набор действий.
     """
-    queryset = User.objects.all()
+    queryset = User.objects.all().order_by("id")
+    permission_classes = (IsAuthenticatedOrReadOnly,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     serializer_class = UserCreateSerializer()
     pagination_class = PageNumberPagination
-    permission_classes = (AllowAny,)
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -173,31 +174,31 @@ class RecipeViewSet(ModelViewSet):
     ViewSet модели Recipe.
     Поддерживает полный набор действий.
     """
-    queryset = Recipe.objects.all()
+    queryset = Recipe.objects.all().order_by("-pub_date")
     permission_classes = (IsAuthenticatedOrReadOnly,)
-    filterset_class = RecipeFilter
-    ordering_fields = ('pub_date')
-    ordering = ('-pub_date',)
+    filter_backends = (DjangoFilterBackend,)
+    # filterset_class = RecipeFilter
 
     def get_queryset(self):
+        queryset = Recipe.objects.all()
         tags = self.request.query_params.getlist('tags')
         user = self.request.user
-        # author = self.request.query_params.get('author')
+        author = self.request.query_params.get('author')
         is_favorite = self.request.query_params.get('is_favorited')
         is_in_shopping_cart = self.request.query_params.get(
             'is_in_shopping_cart'
         )
-        queryset = Recipe.objects.annotate(
-            is_favorited=Exists(
-                Favorite.objects.filter(
-                    user=user, recipe=OuterRef('pk'))),
-            is_in_shopping_cart=Exists(
-                ShoppingCart.objects.filter(
-                    user=user, recipe=OuterRef('pk')))
-        ).select_related('author').prefetch_related('tags', 'ingredients')
+        # queryset = Recipe.objects.annotate(
+        #     is_favorited=Exists(
+        #         Favorite.objects.filter(
+        #             user=user.id, recipe=OuterRef('pk'))),
+        #     is_in_shopping_cart=Exists(
+        #         ShoppingCart.objects.filter(
+        #             user=user, recipe=OuterRef('pk')))
+        # ).select_related('author').prefetch_related('tags', 'ingredients')
 
-        # if author:
-        #     queryset = queryset.filter(author_id=author)
+        if author:
+            queryset = queryset.filter(author_id=author)
 
         if tags:
             queryset = queryset.filter(tags__slug__in=tags).distinct()
@@ -206,7 +207,7 @@ class RecipeViewSet(ModelViewSet):
             queryset = queryset.filter(favorite__user=user)
 
         if is_in_shopping_cart:
-            queryset = queryset.filter(shopping__user=user)
+            queryset = queryset.filter(shopping__cart__user=user)
 
         return queryset
 
@@ -284,15 +285,14 @@ class RecipeViewSet(ModelViewSet):
                 favorite = Favorite.objects.get(
                     recipe=recipe, user=request.user
                 ).delete()
-                cache.clear()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     def create_ingredients_file(self, request):
-        ingredients = (
-            RecipeIngredient.objects.all()
-            .values("ingredient__name", "ingredient__measurement_unit")
-            .annotate(amount=Sum("amount"))
-        )
+        ingredients = RecipeIngredient.objects.filter(
+            recipe__shopping_cart__user=request.user
+            ).order_by('ingredient__name').values(
+                "ingredient__name", "ingredient__measurement_unit"
+            ).annotate(amount=Sum("amount"))
         shopping_cart = []
         for ingredient in ingredients:
             shopping_cart.append(
