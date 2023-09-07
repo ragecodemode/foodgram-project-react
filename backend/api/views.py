@@ -1,9 +1,8 @@
 from django.db.models import Sum
-from django.http import FileResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
 # from django.db.models.expressions import Exists, OuterRef
 from django_filters.rest_framework import DjangoFilterBackend
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
@@ -11,6 +10,7 @@ from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
 from users.models import Follow
 
 from rest_framework import status, filters
+from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -23,7 +23,7 @@ from .serializers import (SubscriptionsSerializer, IngredientSerializer,
                           ShoppingCartSerializer, TagSerializer,
                           UserCreateSerializer, UserSerializer)
 from .filters import IngredientSearch
-from api.permissions import IsAuthenticatedOrReadOnly
+from api.permissions import IsAuthenticatedOrReadOnly, AuthorOrReadOnly
 User = get_user_model()
 
 
@@ -58,7 +58,6 @@ class UserViewSet(UserViewSet):
     Поддерживает полный набор действий.
     """
     queryset = User.objects.all().order_by("id")
-    permission_classes = (IsAuthenticatedOrReadOnly,)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     serializer_class = UserCreateSerializer()
     pagination_class = PageNumberPagination
@@ -71,6 +70,19 @@ class UserViewSet(UserViewSet):
         if self.action == "subscriptions":
             return SubscriptionsSerializer
         return UserSerializer
+
+    def get_queryset(self):
+        if self.action == 'list':
+            return self.queryset
+        return super().get_queryset()
+
+    def get_permissions(self):
+        if (self.request.method == 'POST'
+           and self.request.path == '/api/users/'):
+            permission_classes = [permissions.AllowAny]
+        else:
+            permission_classes = [AuthorOrReadOnly]
+        return [permission() for permission in permission_classes]
 
     @action(("get",), detail=False, permission_classes=(IsAuthenticated,))
     def me(self, request):
@@ -177,7 +189,6 @@ class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all().order_by("-pub_date")
     permission_classes = (IsAuthenticatedOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
-    # filterset_class = RecipeFilter
 
     def get_queryset(self):
         queryset = Recipe.objects.all()
@@ -188,14 +199,6 @@ class RecipeViewSet(ModelViewSet):
         is_in_shopping_cart = self.request.query_params.get(
             'is_in_shopping_cart'
         )
-        # queryset = Recipe.objects.annotate(
-        #     is_favorited=Exists(
-        #         Favorite.objects.filter(
-        #             user=user.id, recipe=OuterRef('pk'))),
-        #     is_in_shopping_cart=Exists(
-        #         ShoppingCart.objects.filter(
-        #             user=user, recipe=OuterRef('pk')))
-        # ).select_related('author').prefetch_related('tags', 'ingredients')
 
         if author:
             queryset = queryset.filter(author_id=author)
@@ -287,9 +290,11 @@ class RecipeViewSet(ModelViewSet):
                 ).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def create_ingredients_file(self, request):
+    def create_ingredients_file(self):
+        """Метод для создания текстового файла списка покупок."""
+        user = self.request.user
         ingredients = RecipeIngredient.objects.filter(
-            recipe__shopping_cart__user=request.user
+            recipe__shopping_cart__user=user
             ).order_by('ingredient__name').values(
                 "ingredient__name", "ingredient__measurement_unit"
             ).annotate(amount=Sum("amount"))
@@ -307,13 +312,9 @@ class RecipeViewSet(ModelViewSet):
         permission_classes=(IsAuthenticated,),
         url_path=r"download_shopping_cart"
     )
-    def download_shopping_cart(self, request):
-        try:
-            ingredients = self.create_ingredients_file(request)
-        except ObjectDoesNotExist:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        content = self.create_ingredients_file(ingredients)
-        response = FileResponse(content, content_type="text/plain")
+    def download_shopping_cart(self, request, *args, **kwargs):
+        content = self.create_ingredients_file()
+        response = HttpResponse(content, content_type="text/plain")
         response["Content-Disposition"] = (
             'attachment; filename="ingredients.txt"'
         )
