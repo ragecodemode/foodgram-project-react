@@ -3,7 +3,6 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from django.contrib.auth import get_user_model
-# from django.db.models.expressions import Exists, OuterRef
 from django_filters.rest_framework import DjangoFilterBackend
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
@@ -189,6 +188,7 @@ class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all().order_by("-pub_date")
     permission_classes = (IsAuthenticatedOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         queryset = Recipe.objects.all()
@@ -210,7 +210,7 @@ class RecipeViewSet(ModelViewSet):
             queryset = queryset.filter(favorite__user=user)
 
         if is_in_shopping_cart:
-            queryset = queryset.filter(shopping__cart__user=user)
+            queryset = Recipe.objects.filter(shopping_cart__user=user)
 
         return queryset
 
