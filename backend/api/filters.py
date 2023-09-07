@@ -2,7 +2,7 @@ from rest_framework import filters
 from recipes.models import Ingredient
 
 
-class IngredientSearch(filters.BaseFilterBackend):
+class IngredientSearch(filters.FilterSet):
     """Поиск по вхождению в начало имени ингредиента."""
 
     name = filters.CharFilter(method='filter_name')
