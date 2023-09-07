@@ -54,7 +54,6 @@ class IngredientViewSet(ReadOnlyModelViewSet):
 class UserViewSet(UserViewSet):
     """
     ViewSet модели User.
-    Поддерживает полный набор действий.
     """
     queryset = User.objects.all().order_by("id")
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
@@ -184,7 +183,6 @@ class UserViewSet(UserViewSet):
 class RecipeViewSet(ModelViewSet):
     """
     ViewSet модели Recipe.
-    Поддерживает полный набор действий.
     """
     queryset = Recipe.objects.all().order_by("-pub_date")
     permission_classes = (IsAuthenticatedOrReadOnly,)
