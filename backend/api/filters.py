@@ -1,11 +1,11 @@
-from rest_framework import filters
+from django_filters import rest_framework as filter
 from recipes.models import Ingredient
 
 
-class IngredientSearch(filters.FilterSet):
+class IngredientSearch(filter.FilterSet):
     """Поиск по вхождению в начало имени ингредиента."""
 
-    name = filters.CharFilter(method='filter_name')
+    name = filter.CharFilter(method='filter_name')
 
     class Meta:
         model = Ingredient
