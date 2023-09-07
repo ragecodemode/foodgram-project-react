@@ -60,6 +60,7 @@ class UserViewSet(UserViewSet):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     serializer_class = UserCreateSerializer()
     pagination_class = PageNumberPagination
+    permission_classes = (AllowAny,)
 
     def get_serializer_class(self):
         if self.action == "create":
