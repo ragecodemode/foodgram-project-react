@@ -1,21 +1,13 @@
-from django_filters import rest_framework as filter
-from recipes.models import Ingredient
+from rest_framework import filters
 
 
-class IngredientSearch(filter.FilterSet):
+class IngredientSearch(filters.BaseFilterBackend):
     """Поиск по вхождению в начало имени ингредиента."""
 
-    name = filter.CharFilter(method='filter_name')
+    def filter_queryset(self, request, queryset, view):
+        search_query = request.query_params.get('name')
+        starts_with_queryset = queryset.filter(name__startswith=search_query)
+        contains_queryset = queryset.filter(name__icontains=search_query)
 
-    class Meta:
-        model = Ingredient
-        fields = (
-            'name',
-        )
-
-    def filter_queryset(self, request, queryset, view, value):
-        starts_with_queryset = queryset.filter(name__startswith=value)
-        contains_queryset = queryset.filter(name__icontains=value)
-
-        sorted_queryset = starts_with_queryset.union(contains_queryset)
-        return sorted_queryset
+        queryset = starts_with_queryset.union(contains_queryset)
+        return queryset
