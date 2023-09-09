@@ -52,21 +52,6 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     search_fields = ['^name']
     pagination_class = None
 
-    # def get_queryset(self):
-
-    #     name = self.request.query_params.get("name")
-    #     queryset = super().get_queryset()
-
-    #     if not name:
-    #         return queryset
-
-    #     start_queryset = queryset.filter(name__istartswith=name)
-    #     start_names = (ing.name for ing in start_queryset)
-    #     contain_queryset = queryset.filter(name__icontains=start_queryset).exclude(
-    #         name__in=start_names
-    #     )
-    #     return start_queryset.union(contain_queryset)
-
 
 class UserViewSet(UserViewSet):
     """
