@@ -81,7 +81,6 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ("id", "name", "measurement_unit")
-        read_only_fields = ("name", "measurement_unit")
 
 
 class RecipeIngredientSerializer(serializers.Serializer):
@@ -353,18 +352,6 @@ class SubscriptionsSerializer(serializers.ModelSerializer):
     Сериализатор модели User.
     Вывод списка подписок пользователя.
     """
-    # id = ReadOnlyField(
-    #     source=' following.id'
-    # )
-    # username = ReadOnlyField(
-    #     source=' following.username'
-    # )
-    # first_name = ReadOnlyField(
-    #     source=' following.first_name'
-    # )
-    # last_name = ReadOnlyField(
-    #     source=' following.last_name'
-    # )
     is_subscribed = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()

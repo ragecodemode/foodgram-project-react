@@ -45,7 +45,7 @@ class IngredientAdmin(admin.ModelAdmin):
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'recipe']
-    search_fields = ['user__username', 'user__email', 'user']
+    search_fields = ['user__username', "recipe__name"]
     empty_value_display = '-пусто-'
 
 

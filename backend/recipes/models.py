@@ -1,8 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import UniqueConstraint
-
 from backend.settings import LIMITATION, MIN_VALUE_COOKING_TIME, VALUE_AMOUNT
 
 User = get_user_model()
@@ -16,7 +14,7 @@ class Tag(models.Model):
     slug = models.SlugField(unique=True)
 
     class Meta:
-        ordering = ('slug',)
+        ordering = ('id', 'name')
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
 
@@ -36,12 +34,6 @@ class Ingredient(models.Model):
         ordering = ['name']
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
-        constraints = [
-            UniqueConstraint(
-                fields=['name', 'measurement_unit'],
-                name='ingredient_name_unit_unique'
-            )
-        ]
 
     def __str__(self) -> str:
         return f"{self.name}, {self.measurement_unit}."
@@ -83,7 +75,7 @@ class Recipe(models.Model):
     )
 
     class Meta:
-        ordering = ('-pub_date',)
+        ordering = ('-pub_date', 'id',)
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
@@ -104,11 +96,12 @@ class RecipeIngredient(models.Model):
     amount = models.IntegerField(
         'Количество',
         validators=(MinValueValidator(VALUE_AMOUNT),),
-        default=1
+        error_messages={"errors": "Количество не может быть отрицательным!"},
+        default=VALUE_AMOUNT,
     )
 
     class Meta:
-        ordering = ('-id', )
+        ordering = ('id',)
         verbose_name = "Колличество ингридиентов"
         verbose_name_plural = "Колличество ингридиентов"
 

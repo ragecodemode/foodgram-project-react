@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from django.contrib.auth import get_user_model
 from django_filters.rest_framework import DjangoFilterBackend
+
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 from users.models import Follow
@@ -47,8 +48,24 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
-    filter_backends = (IngredientSearch,)
+    filter_backends = [IngredientSearch]
+    search_fields = ['^name']
     pagination_class = None
+
+    # def get_queryset(self):
+
+    #     name = self.request.query_params.get("name")
+    #     queryset = super().get_queryset()
+
+    #     if not name:
+    #         return queryset
+
+    #     start_queryset = queryset.filter(name__istartswith=name)
+    #     start_names = (ing.name for ing in start_queryset)
+    #     contain_queryset = queryset.filter(name__icontains=start_queryset).exclude(
+    #         name__in=start_names
+    #     )
+    #     return start_queryset.union(contain_queryset)
 
 
 class UserViewSet(UserViewSet):
@@ -300,7 +317,7 @@ class RecipeViewSet(ModelViewSet):
         shopping_cart = []
         for ingredient in ingredients:
             shopping_cart.append(
-                f'{ingredient["ingredient__name"]}'
+                f'{ingredient["ingredient__name"]} - '
                 f'{ingredient["amount"]} '
                 f'{ingredient["ingredient__measurement_unit"]}\n'
             )
