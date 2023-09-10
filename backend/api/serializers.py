@@ -217,10 +217,10 @@ class RecipeCreateUpdateSerializers(serializers.ModelSerializer):
             if ingredient in ingredients_list:
                 raise serializers.ValidationError(
                     'Ингридиенты должны быть уникальны')
-            ingredients_list.append(ingredient)
             if int(ingredient.get('amount')) < 1:
                 raise serializers.ValidationError(
                     'Количество ингредиента больше 0')
+            ingredients_list.append(ingredient)
         return ingredients
 
     def validate_cooking_time(self, cooking_time):
