@@ -1,6 +1,7 @@
 from django.core.validators import MinValueValidator
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import UniqueConstraint
 from backend.settings import LIMITATION, MIN_VALUE_COOKING_TIME, VALUE_AMOUNT
 
 User = get_user_model()
@@ -105,6 +106,13 @@ class RecipeIngredient(models.Model):
         unique_together = (('recipe', 'ingredient'),)
         verbose_name = "Колличество ингридиентов"
         verbose_name_plural = "Колличество ингридиентов"
+        constraints = [
+            UniqueConstraint(
+                fields=('recipe', 'ingredient'),
+                name='unique_recipe_ingredient',
+                violation_error_message='Этот ингредиент уже есть в рецепте.'
+            )
+        ]
 
     def __str__(self) -> str:
         return (
