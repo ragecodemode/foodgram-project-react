@@ -81,7 +81,7 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    """Моедль, связывающая количество ингридиентов и рецепт."""
+    """Модель, связывающая количество ингреядиентов и рецепт."""
 
     recipe = models.ForeignKey(
         Recipe,
@@ -102,6 +102,7 @@ class RecipeIngredient(models.Model):
 
     class Meta:
         ordering = ('id',)
+        unique_together = (('recipe', 'ingredient'),)
         verbose_name = "Колличество ингридиентов"
         verbose_name_plural = "Колличество ингридиентов"
 

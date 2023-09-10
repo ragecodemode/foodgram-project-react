@@ -4,10 +4,7 @@ from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 from django.db import transaction
 
-from django.core.exceptions import ValidationError
-
 from rest_framework.validators import UniqueTogetherValidator
-from rest_framework import status
 from rest_framework.serializers import (
     PrimaryKeyRelatedField, ReadOnlyField, ImageField, IntegerField
 )
@@ -186,12 +183,6 @@ class RecipeListSerializer(serializers.ModelSerializer):
         return obj.shopping_cart.filter(user=request.user).exists()
 
 
-class CustomValidationError(ValidationError):
-    def __init__(self, detail, status_code=status.HTTP_400_BAD_REQUEST):
-        super().__init__(detail)
-        self.status_code = status_code
-
-
 class RecipeCreateUpdateSerializers(serializers.ModelSerializer):
     """
     Сериализатор модели Recipe.
@@ -220,15 +211,15 @@ class RecipeCreateUpdateSerializers(serializers.ModelSerializer):
     def validate_ingredients(self, ingredients):
         ingredients_list = []
         if not ingredients:
-            raise CustomValidationError(
+            raise serializers.ValidationError(
                 'Отсутствуют ингридиенты')
         for ingredient in ingredients:
             if ingredient in ingredients_list:
-                raise CustomValidationError(
+                raise serializers.ValidationError(
                     'Ингридиенты должны быть уникальны')
             ingredients_list.append(ingredient)
             if int(ingredient.get('amount')) < 1:
-                raise CustomValidationError(
+                raise serializers.ValidationError(
                     'Количество ингредиента больше 0')
         return ingredients
 
