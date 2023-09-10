@@ -224,16 +224,6 @@ class RecipeCreateUpdateSerializers(serializers.ModelSerializer):
             ingredient_list.append(ingredient)
         return data
 
-    # def validate_ingredients_amount(self, ingredients):
-    #     if not ingredients:
-    #         raise serializers.ValidationError(
-    #             'Мин. 1 ингредиент в рецепте!')
-    #     for ingredient in ingredients:
-    #         if int(ingredient.get('amount')) < 1:
-    #             raise serializers.ValidationError(
-    #                 'Количество ингредиента >= 1!')
-    #     return ingredients
-
     def validate_cooking_time(self, cooking_time):
         if int(cooking_time) < 1:
             raise serializers.ValidationError(
