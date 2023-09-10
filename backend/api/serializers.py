@@ -5,6 +5,7 @@ from drf_extra_fields.fields import Base64ImageField
 from django.db import transaction
 
 from rest_framework.validators import UniqueTogetherValidator
+from rest_framework import status
 from rest_framework.serializers import (
     PrimaryKeyRelatedField, ReadOnlyField, ImageField, IntegerField
 )
@@ -212,15 +213,18 @@ class RecipeCreateUpdateSerializers(serializers.ModelSerializer):
         ingredients_list = []
         if not ingredients:
             raise serializers.ValidationError(
-                'Отсутствуют ингридиенты')
+                'Отсутствуют ингридиенты',
+                status_code=status.HTTP_400_BAD_REQUEST)
         for ingredient in ingredients:
-            if ingredient['id'] in ingredients_list:
+            if ingredient in ingredients_list:
                 raise serializers.ValidationError(
-                    'Ингридиенты должны быть уникальны')
-            ingredients_list.append(ingredient['id'])
+                    'Ингридиенты должны быть уникальны',
+                    status_code=status.HTTP_400_BAD_REQUEST)
+            ingredients_list.append(ingredient)
             if int(ingredient.get('amount')) < 1:
                 raise serializers.ValidationError(
-                    'Количество ингредиента больше 0')
+                    'Количество ингредиента больше 0',
+                    status_code=status.HTTP_400_BAD_REQUEST)
         return ingredients
 
     def validate_cooking_time(self, cooking_time):
