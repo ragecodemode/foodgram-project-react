@@ -110,7 +110,7 @@ class RecipeIngredient(models.Model):
             UniqueConstraint(
                 fields=('recipe', 'ingredient'),
                 name='unique_recipe_ingredient',
-                violation_error_message='Этот ингредиент уже есть в рецепте.'
+                error_message='Этот ингредиент уже есть в рецепте.'
             )
         ]
 
