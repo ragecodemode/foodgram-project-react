@@ -17,6 +17,7 @@ class UserAdmin(admin.ModelAdmin):
         'first_name',
         'last_name'
     )
+    exclude = ('password',)
     ordering = ('username', )
     empty_value_display = '-пусто-'
 

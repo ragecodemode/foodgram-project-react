@@ -4,6 +4,8 @@ from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 from django.db import transaction
 
+from django.core.exceptions import ValidationError
+
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework import status
 from rest_framework.serializers import (
@@ -184,6 +186,12 @@ class RecipeListSerializer(serializers.ModelSerializer):
         return obj.shopping_cart.filter(user=request.user).exists()
 
 
+class CustomValidationError(ValidationError):
+    def __init__(self, detail, status_code=status.HTTP_400_BAD_REQUEST):
+        super().__init__(detail)
+        self.status_code = status_code
+
+
 class RecipeCreateUpdateSerializers(serializers.ModelSerializer):
     """
     Сериализатор модели Recipe.
@@ -212,19 +220,16 @@ class RecipeCreateUpdateSerializers(serializers.ModelSerializer):
     def validate_ingredients(self, ingredients):
         ingredients_list = []
         if not ingredients:
-            raise serializers.ValidationError(
-                'Отсутствуют ингридиенты',
-                status_code=status.HTTP_400_BAD_REQUEST)
+            raise CustomValidationError(
+                'Отсутствуют ингридиенты')
         for ingredient in ingredients:
             if ingredient in ingredients_list:
-                raise serializers.ValidationError(
-                    'Ингридиенты должны быть уникальны',
-                    status_code=status.HTTP_400_BAD_REQUEST)
+                raise CustomValidationError(
+                    'Ингридиенты должны быть уникальны')
             ingredients_list.append(ingredient)
             if int(ingredient.get('amount')) < 1:
-                raise serializers.ValidationError(
-                    'Количество ингредиента больше 0',
-                    status_code=status.HTTP_400_BAD_REQUEST)
+                raise CustomValidationError(
+                    'Количество ингредиента больше 0')
         return ingredients
 
     def validate_cooking_time(self, cooking_time):
