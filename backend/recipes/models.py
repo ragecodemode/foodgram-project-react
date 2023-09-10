@@ -103,14 +103,13 @@ class RecipeIngredient(models.Model):
 
     class Meta:
         ordering = ('id',)
-        unique_together = (('recipe', 'ingredient'),)
+        # unique_together = (('recipe', 'ingredient'),)
         verbose_name = "Колличество ингридиентов"
         verbose_name_plural = "Колличество ингридиентов"
         constraints = [
             UniqueConstraint(
                 fields=('recipe', 'ingredient'),
                 name='unique_recipe_ingredient',
-                error_message='Этот ингредиент уже есть в рецепте.'
             )
         ]
 
