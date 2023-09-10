@@ -3,6 +3,7 @@ from django.contrib.auth.password_validation import validate_password
 from djoser.serializers import UserCreateSerializer
 from drf_extra_fields.fields import Base64ImageField
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework.serializers import (
@@ -208,20 +209,17 @@ class RecipeCreateUpdateSerializers(serializers.ModelSerializer):
             'author'
         )
 
-    def validate_ingredients(self, ingredients):
-        ingredients_list = []
-        if not ingredients:
-            raise serializers.ValidationError(
-                'Отсутствуют ингридиенты')
-        for ingredient in ingredients:
-            if ingredient in ingredients_list:
+    def validate(self, data):
+        ingredients = data['ingredients']
+        ingredient_list = []
+        for items in ingredients:
+            ingredient = get_object_or_404(
+                Ingredient, id=items['id'])
+            if ingredient in ingredient_list:
                 raise serializers.ValidationError(
-                    'Ингридиенты должны быть уникальны')
-            if int(ingredient.get('amount')) < 1:
-                raise serializers.ValidationError(
-                    'Количество ингредиента больше 0')
-            ingredients_list.append(ingredient)
-        return ingredients
+                    'Ингредиент должен быть уникальным!')
+            ingredient_list.append(ingredient)
+        return data
 
     def validate_cooking_time(self, cooking_time):
         if int(cooking_time) < 1:
